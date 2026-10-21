@@ -1,6 +1,6 @@
 import { C as require_jsx_runtime, y as Link } from "./_libs/@tanstack/react-router+[...].mjs";
-import { i as buttonVariants, t as AppShell } from "./_ssr/shell-DS2zCaeM.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/_code-CioZhm3D.js
+import { i as buttonVariants, t as AppShell } from "./_ssr/shell-DN6vqT4R.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/_code-CUKQyeq9.js
 var import_jsx_runtime = require_jsx_runtime();
 function MissingLink() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppShell, {
@@ -14,7 +14,7 @@ function MissingLink() {
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 					className: "mt-4 text-muted",
-					children: "O código não está no catálogo de exemplo."
+					children: "Esse endereço não aponta para nenhum produto."
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
 					to: "/",

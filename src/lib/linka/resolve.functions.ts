@@ -19,7 +19,12 @@ export const resolveCode = createServerFn({ method: "GET" })
     return data;
   })
   .handler(async ({ data }): Promise<ResolvedLink | MissingLink> => {
-    const { findStoredLink } = await import("@/lib/linka/store.server");
+    const { findStoredLink, freshenStoredStock } = await import("@/lib/linka/store.server");
+    try {
+      await freshenStoredStock(data);
+    } catch {
+      // A visita usa o último estoque conhecido se a Shopee não responder.
+    }
     const link = (await findStoredLink(data)) ?? findLink(data);
     if (!link) return { found: false };
     return { found: true, link, resolution: resolveSmartLink(link) };

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { formatBrl, resolveSmartLink } from "./resolve.ts";
+import { formatBrl, redirectTarget, resolveSmartLink } from "./resolve.ts";
 import type { SmartLink } from "./types.ts";
 
 function link(stock: boolean[]): SmartLink {
@@ -47,4 +47,15 @@ test("recusa um link sem ofertas", () => {
 test("formata real sem depender do locale do servidor", () => {
   assert.equal(formatBrl(3990), "R$ 39,90");
   assert.equal(formatBrl(128990), "R$ 1.289,90");
+});
+
+test("só redireciona para https", () => {
+  const ok = resolveSmartLink(link([true]));
+  assert.equal(redirectTarget(ok), "https://example.com/0");
+  assert.equal(redirectTarget({ status: "all_out" }), null);
+  const unsafe = resolveSmartLink({
+    ...link([true]),
+    offers: [{ id: "x", shop: "Loja", url: "http://inseguro.example/a", inStock: true }],
+  });
+  assert.equal(redirectTarget(unsafe), null);
 });

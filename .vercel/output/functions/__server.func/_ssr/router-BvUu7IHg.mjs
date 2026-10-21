@@ -1,9 +1,9 @@
 import { o as __toESM } from "../_runtime.mjs";
-import { a as resolveSmartLink, n as findLink, s as withStock } from "./resolve-Di4BB_Yg.mjs";
-import { C as require_jsx_runtime, S as useRouter, X as notFound, Z as require_react, _ as createFileRoute, d as Scripts, f as HeadContent, g as lazyRouteComponent, h as Outlet, m as createRouter, v as createRootRoute } from "../_libs/@tanstack/react-router+[...].mjs";
+import { C as require_jsx_runtime, J as redirect, Q as require_react, S as useRouter, Z as notFound, _ as createFileRoute, d as Scripts, f as HeadContent, g as lazyRouteComponent, h as Outlet, m as createRouter, v as createRootRoute } from "../_libs/@tanstack/react-router+[...].mjs";
 import { a as getServerFnById, i as TSS_SERVER_FUNCTION, r as createServerFn, s as __exportAll } from "./ssr.mjs";
 import { L as string, N as number, P as object, R as union, j as literal } from "../_libs/@better-auth/core+[...].mjs";
-import { n as auth } from "./server-DVnHrv5k.mjs";
+import { n as auth } from "./server-LbsNkczH.mjs";
+import { c as withStock, i as redirectTarget, n as findLink, o as resolveSmartLink } from "./resolve-Czhe8mfX.mjs";
 import { t as TriangleAlert } from "../_libs/lucide-react.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/createSsrRpc-B2Izd0c7.js
 var createSsrRpc = (functionId) => {
@@ -19,7 +19,7 @@ var createSsrRpc = (functionId) => {
 	});
 };
 //#endregion
-//#region node_modules/.nitro/vite/services/ssr/assets/router-DL14FxEK.js
+//#region node_modules/.nitro/vite/services/ssr/assets/router-BvUu7IHg.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var FALLBACK_MESSAGE = "An unexpected error occurred. Try reloading the page.";
@@ -347,7 +347,7 @@ function PreviewHostBridge() {
 	}, [router]);
 	return null;
 }
-var styles_default = "/assets/styles-B6XNYYC2.css";
+var styles_default = "/assets/styles-BiFhv_at.css";
 var APP_NAME = "Linka";
 var Route$6 = createRootRoute({
 	head: () => ({
@@ -410,9 +410,9 @@ var Route$6 = createRootRoute({
 		] })]
 	})
 });
-var $$splitComponentImporter$2 = () => import("./routes-DQJtNjKA.mjs");
+var $$splitComponentImporter$2 = () => import("./routes-rP82YjnI.mjs");
 var Route$5 = createFileRoute("/")({ component: lazyRouteComponent($$splitComponentImporter$2, "component") });
-var $$splitComponentImporter$1 = () => import("./login-DRP5zw8y.mjs");
+var $$splitComponentImporter$1 = () => import("./login-Cl_q0ECd.mjs");
 var Route$4 = createFileRoute("/login")({
 	head: () => ({ meta: [{ title: "Entrar · Linka" }] }),
 	component: lazyRouteComponent($$splitComponentImporter$1, "component")
@@ -426,8 +426,8 @@ var resolveCode = createServerFn({ method: "GET" }).validator((data) => {
 	if (typeof data !== "string" || !/^[a-z0-9-]{1,64}$/.test(data)) throw new Error("Código inválido");
 	return data;
 }).handler(createSsrRpc("788efc79f993b15117f9c872ddcbda5cd3416d8baa7cabeb89bab2ef4a75b979"));
-var $$splitComponentImporter = () => import("../_code-Bge5KLF7.mjs");
-var $$splitNotFoundComponentImporter = () => import("../_code-CioZhm3D.mjs");
+var $$splitComponentImporter = () => import("../_code-deLjozbg.mjs");
+var $$splitNotFoundComponentImporter = () => import("../_code-CUKQyeq9.mjs");
 var Route$2 = createFileRoute("/r/$code")({
 	validateSearch: (search) => ({ on: typeof search.on === "string" ? search.on : void 0 }),
 	loaderDeps: ({ search }) => ({ on: search.on }),
@@ -435,9 +435,16 @@ var Route$2 = createFileRoute("/r/$code")({
 		const result = await resolveCode({ data: params.code });
 		if (!result.found) throw notFound();
 		const link = withStock(result.link, deps.on);
+		const resolution = resolveSmartLink(link);
+		const target = redirectTarget(resolution);
+		if (target) throw redirect({
+			href: target,
+			statusCode: 302,
+			headers: { "cache-control": "no-store" }
+		});
 		return {
 			link,
-			resolution: resolveSmartLink(link)
+			resolution
 		};
 	},
 	head: ({ loaderData }) => ({ meta: loaderData ? [{ title: `${loaderData.link.title} · Linka` }] : [{ title: "Link não encontrado · Linka" }] }),
@@ -461,7 +468,7 @@ function toPublic(resolution) {
 var Route = createFileRoute("/api/r/$code")({ server: { handlers: { GET: async ({ params }) => {
 	const code = params.code;
 	if (!/^[a-z0-9-]{1,64}$/.test(code)) return Response.json({ error: "invalid_code" }, { status: 400 });
-	const { findStoredLink } = await import("./store.server-VqyDLXRa.mjs");
+	const { findStoredLink } = await import("./store.server-DQj0N3t_.mjs");
 	const link = await findStoredLink(code) ?? findLink(code);
 	if (!link) return Response.json({ error: "not_found" }, { status: 404 });
 	return Response.json({

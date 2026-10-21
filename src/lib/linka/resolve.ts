@@ -70,3 +70,17 @@ export function resolutionCopy(resolution: Resolution): { title: string; body: s
     body: "A principal está sem estoque. O clique segue para o primeiro backup disponível.",
   };
 }
+
+/** URL https para onde o clique deve ir. Qualquer outra coisa fica na página. */
+export function redirectTarget(resolution: Resolution): string | null {
+  if (resolution.status !== "ok") return null;
+  const url = resolution.offer.url.trim();
+  if (!url.startsWith("https://") || /\s/.test(url)) return null;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:" || parsed.username || parsed.password) return null;
+    return url;
+  } catch {
+    return null;
+  }
+}

@@ -21,7 +21,7 @@ const STEPS = [
   },
   {
     title: "Colar uma vez",
-    body: "O mesmo endereço no story, no grupo ou na bio. O destino muda sozinho.",
+    body: "O mesmo endereço no story, no grupo ou na bio. O clique cai na oferta com estoque.",
   },
 ];
 
@@ -61,8 +61,8 @@ function Home() {
         <Workspace />
       </SignedIn>
       <p className="mt-8 text-sm leading-relaxed text-muted lg:mt-12">
-        Esta é a regra do link, com um produto de exemplo. Quem clica não precisa de conta. O que
-        você cadastrar fica só com você. A mesma decisão responde em{" "}
+        Quem clica não precisa de conta: o endereço manda direto para a oferta com estoque. Se todas
+        acabarem, a pessoa vê que esgotou. A decisão também responde em{" "}
         <a
           className="font-medium text-fg underline decoration-border underline-offset-4"
           href={`/api/r/${DEMO_CODE}`}

@@ -1,7 +1,7 @@
-import { a as resolveSmartLink, n as findLink } from "./resolve-Di4BB_Yg.mjs";
 import { r as createServerFn } from "./ssr.mjs";
+import { n as findLink, o as resolveSmartLink } from "./resolve-Czhe8mfX.mjs";
 import { t as createServerRpc } from "./createServerRpc-CcvdN_gc.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/resolve.functions-Dr0lPDIv.js
+//#region node_modules/.nitro/vite/services/ssr/assets/resolve.functions-r0XHbScA.js
 var resolveCode_createServerFn_handler = createServerRpc({
 	id: "788efc79f993b15117f9c872ddcbda5cd3416d8baa7cabeb89bab2ef4a75b979",
 	name: "resolveCode",
@@ -11,7 +11,10 @@ var resolveCode = createServerFn({ method: "GET" }).validator((data) => {
 	if (typeof data !== "string" || !/^[a-z0-9-]{1,64}$/.test(data)) throw new Error("Código inválido");
 	return data;
 }).handler(resolveCode_createServerFn_handler, async ({ data }) => {
-	const { findStoredLink } = await import("./store.server-VqyDLXRa.mjs");
+	const { findStoredLink, freshenStoredStock } = await import("./store.server-DQj0N3t_.mjs");
+	try {
+		await freshenStoredStock(data);
+	} catch {}
 	const link = await findStoredLink(data) ?? findLink(data);
 	if (!link) return { found: false };
 	return {

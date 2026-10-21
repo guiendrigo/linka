@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { cleanCredentials, cleanProduct } from "@/lib/linka/input";
-import type { WorkspaceProduct, WorkspaceView } from "@/lib/linka/store.server";
+import type { StockReport, WorkspaceProduct, WorkspaceView } from "@/lib/linka/store.server";
 
 export const getWorkspace = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
@@ -71,6 +71,14 @@ export const editProduct = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<WorkspaceProduct> => {
     const { updateProduct } = await import("@/lib/linka/store.server");
     return updateProduct(context.userId, data.id, data.product);
+  });
+
+export const refreshStock = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((data: unknown) => ({ force: asRecord(data).force === true }))
+  .handler(async ({ context, data }): Promise<StockReport> => {
+    const { checkStock } = await import("@/lib/linka/store.server");
+    return checkStock(context.userId, { force: data.force });
   });
 
 export const removeProduct = createServerFn({ method: "POST" })

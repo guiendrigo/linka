@@ -104,9 +104,12 @@ export function Bench() {
             to="/r/$code"
             params={{ code: DEMO_CODE }}
             search={{ on }}
+            target="_blank"
+            rel="noopener noreferrer"
+            preload={false}
             className={buttonVariants({ variant: "ghost" })}
           >
-            Ver visita
+            Abrir link
           </Link>
         </div>
       </div>

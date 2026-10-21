@@ -1,15 +1,15 @@
 import { r as createServerFn } from "./ssr.mjs";
 import { t as createServerRpc } from "./createServerRpc-CcvdN_gc.mjs";
 import { n as cleanCredentials, r as cleanProduct } from "./input-Bpl--re0.mjs";
-import { t as authMiddleware } from "./middleware-BWVCHuB6.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/workspace.functions-Cm-HmvhB.js
+import { t as authMiddleware } from "./middleware-r_43HGBa.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/workspace.functions-CAs6Q77K.js
 var getWorkspace_createServerFn_handler = createServerRpc({
 	id: "059bf76fbf611564222d39fd40694a844bb8b9c432118bb9386713e7f2bd5858",
 	name: "getWorkspace",
 	filename: "src/lib/linka/workspace.functions.ts"
 }, (opts) => getWorkspace.__executeServer(opts));
 var getWorkspace = createServerFn({ method: "GET" }).middleware([authMiddleware]).handler(getWorkspace_createServerFn_handler, async ({ context }) => {
-	const { loadWorkspace } = await import("./store.server-VqyDLXRa.mjs");
+	const { loadWorkspace } = await import("./store.server-DQj0N3t_.mjs");
 	return loadWorkspace(context.userId);
 });
 var saveShopeeCredentials_createServerFn_handler = createServerRpc({
@@ -24,7 +24,7 @@ var saveShopeeCredentials = createServerFn({ method: "POST" }).middleware([authM
 		secret: typeof body.secret === "string" ? body.secret : ""
 	});
 }).handler(saveShopeeCredentials_createServerFn_handler, async ({ context, data }) => {
-	const { saveCredentials } = await import("./store.server-VqyDLXRa.mjs");
+	const { saveCredentials } = await import("./store.server-DQj0N3t_.mjs");
 	await saveCredentials(context.userId, data.appId, data.secret);
 	return { ok: true };
 });
@@ -34,7 +34,7 @@ var removeShopeeCredentials_createServerFn_handler = createServerRpc({
 	filename: "src/lib/linka/workspace.functions.ts"
 }, (opts) => removeShopeeCredentials.__executeServer(opts));
 var removeShopeeCredentials = createServerFn({ method: "POST" }).middleware([authMiddleware]).handler(removeShopeeCredentials_createServerFn_handler, async ({ context }) => {
-	const { clearCredentials } = await import("./store.server-VqyDLXRa.mjs");
+	const { clearCredentials } = await import("./store.server-DQj0N3t_.mjs");
 	await clearCredentials(context.userId);
 	return { ok: true };
 });
@@ -53,7 +53,7 @@ var addProduct = createServerFn({ method: "POST" }).middleware([authMiddleware])
 		offers
 	});
 }).handler(addProduct_createServerFn_handler, async ({ context, data }) => {
-	const { createProduct } = await import("./store.server-VqyDLXRa.mjs");
+	const { createProduct } = await import("./store.server-DQj0N3t_.mjs");
 	return createProduct(context.userId, data);
 });
 var editProduct_createServerFn_handler = createServerRpc({
@@ -75,8 +75,17 @@ var editProduct = createServerFn({ method: "POST" }).middleware([authMiddleware]
 		})
 	};
 }).handler(editProduct_createServerFn_handler, async ({ context, data }) => {
-	const { updateProduct } = await import("./store.server-VqyDLXRa.mjs");
+	const { updateProduct } = await import("./store.server-DQj0N3t_.mjs");
 	return updateProduct(context.userId, data.id, data.product);
+});
+var refreshStock_createServerFn_handler = createServerRpc({
+	id: "68345f626e4549d1e4b2b91c89e7522060736110c3875b614d804a8f697d05e3",
+	name: "refreshStock",
+	filename: "src/lib/linka/workspace.functions.ts"
+}, (opts) => refreshStock.__executeServer(opts));
+var refreshStock = createServerFn({ method: "POST" }).middleware([authMiddleware]).validator((data) => ({ force: asRecord(data).force === true })).handler(refreshStock_createServerFn_handler, async ({ context, data }) => {
+	const { checkStock } = await import("./store.server-DQj0N3t_.mjs");
+	return checkStock(context.userId, { force: data.force });
 });
 var removeProduct_createServerFn_handler = createServerRpc({
 	id: "69f981afc6d36ff09e64dde6147fee619233451a99f592843859d13fd9d3fba1",
@@ -88,7 +97,7 @@ var removeProduct = createServerFn({ method: "POST" }).middleware([authMiddlewar
 	if (typeof id !== "string" || !/^[0-9a-f-]{36}$/i.test(id)) throw new Error("Produto inválido.");
 	return id;
 }).handler(removeProduct_createServerFn_handler, async ({ context, data }) => {
-	const { deleteProduct } = await import("./store.server-VqyDLXRa.mjs");
+	const { deleteProduct } = await import("./store.server-DQj0N3t_.mjs");
 	await deleteProduct(context.userId, data);
 	return { ok: true };
 });
@@ -106,7 +115,7 @@ var toggleOfferStock = createServerFn({ method: "POST" }).middleware([authMiddle
 		inStock: body.inStock
 	};
 }).handler(toggleOfferStock_createServerFn_handler, async ({ context, data }) => {
-	const { setOfferStock } = await import("./store.server-VqyDLXRa.mjs");
+	const { setOfferStock } = await import("./store.server-DQj0N3t_.mjs");
 	await setOfferStock(context.userId, data.id, data.inStock);
 	return { ok: true };
 });
@@ -123,4 +132,4 @@ function asOffer(value) {
 	};
 }
 //#endregion
-export { addProduct_createServerFn_handler, editProduct_createServerFn_handler, getWorkspace_createServerFn_handler, removeProduct_createServerFn_handler, removeShopeeCredentials_createServerFn_handler, saveShopeeCredentials_createServerFn_handler, toggleOfferStock_createServerFn_handler };
+export { addProduct_createServerFn_handler, editProduct_createServerFn_handler, getWorkspace_createServerFn_handler, refreshStock_createServerFn_handler, removeProduct_createServerFn_handler, removeShopeeCredentials_createServerFn_handler, saveShopeeCredentials_createServerFn_handler, toggleOfferStock_createServerFn_handler };

@@ -1,13 +1,13 @@
 import { o as __toESM } from "../_runtime.mjs";
-import { a as resolveSmartLink, i as resolutionCopy, n as findLink, o as stockQuery, r as formatBrl, t as DEMO_CODE } from "./resolve-Di4BB_Yg.mjs";
-import { C as require_jsx_runtime, Z as require_react, y as Link } from "../_libs/@tanstack/react-router+[...].mjs";
+import { C as require_jsx_runtime, Q as require_react, y as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { r as createServerFn } from "./ssr.mjs";
+import { a as cn, i as buttonVariants, n as Button, o as useCurrentUser, r as SignedIn, t as AppShell } from "./shell-DN6vqT4R.mjs";
+import { a as resolutionCopy, n as findLink, o as resolveSmartLink, r as formatBrl, s as stockQuery, t as DEMO_CODE } from "./resolve-Czhe8mfX.mjs";
 import { a as Check, i as Copy, n as Trash2, r as Plus } from "../_libs/lucide-react.mjs";
-import { i as createSsrRpc, r as previewPathPrefix } from "./router-DL14FxEK.mjs";
-import { a as cn, i as buttonVariants, n as Button, o as useCurrentUser, r as SignedIn, t as AppShell } from "./shell-DS2zCaeM.mjs";
+import { i as createSsrRpc, r as previewPathPrefix } from "./router-BvUu7IHg.mjs";
 import { n as cleanCredentials, r as cleanProduct, t as centsToBrlInput } from "./input-Bpl--re0.mjs";
-import { t as authMiddleware } from "./middleware-BWVCHuB6.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-DQJtNjKA.js
+import { t as authMiddleware } from "./middleware-r_43HGBa.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-rP82YjnI.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var seed = findLink(DEMO_CODE);
@@ -135,8 +135,11 @@ function Bench() {
 						to: "/r/$code",
 						params: { code: DEMO_CODE },
 						search: { on },
+						target: "_blank",
+						rel: "noopener noreferrer",
+						preload: false,
 						className: buttonVariants({ variant: "ghost" }),
-						children: "Ver visita"
+						children: "Abrir link"
 					})]
 				})]
 			})
@@ -183,6 +186,7 @@ var editProduct = createServerFn({ method: "POST" }).middleware([authMiddleware]
 		})
 	};
 }).handler(createSsrRpc("18987b496d6b14e6a61a3212798aaf76c93e6f7de9691a41017a62d4309bef47"));
+var refreshStock = createServerFn({ method: "POST" }).middleware([authMiddleware]).validator((data) => ({ force: asRecord(data).force === true })).handler(createSsrRpc("68345f626e4549d1e4b2b91c89e7522060736110c3875b614d804a8f697d05e3"));
 var removeProduct = createServerFn({ method: "POST" }).middleware([authMiddleware]).validator((data) => {
 	const id = asRecord(data).id;
 	if (typeof id !== "string" || !/^[0-9a-f-]{36}$/i.test(id)) throw new Error("Produto inválido.");
@@ -261,6 +265,7 @@ function Workspace() {
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ProductsCard, {
 				products: data.products,
+				canCheck: data.shopee.connected,
 				onChange: (products) => setData({
 					...data,
 					products
@@ -326,7 +331,7 @@ function CredentialsCard({ shopee, onChange }) {
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 					className: "mt-2 text-sm leading-relaxed text-muted",
-					children: "App ID e segredo do Open API. O segredo fica no servidor e não volta para esta tela."
+					children: "App ID e segredo do Open API. O segredo fica no servidor, também para a conferência de estoque, e não volta para esta tela."
 				}),
 				shopee.connected && !editing ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					className: "mt-4 flex flex-col gap-3",
@@ -400,7 +405,7 @@ function CredentialsCard({ shopee, onChange }) {
 		})
 	});
 }
-function ProductsCard({ products, onChange }) {
+function ProductsCard({ products, canCheck, onChange }) {
 	const [open, setOpen] = (0, import_react.useState)(products.length === 0);
 	const [editingId, setEditingId] = (0, import_react.useState)(null);
 	const [title, setTitle] = (0, import_react.useState)("");
@@ -411,7 +416,22 @@ function ProductsCard({ products, onChange }) {
 	const [error, setError] = (0, import_react.useState)(null);
 	const [copied, setCopied] = (0, import_react.useState)(null);
 	const [confirmId, setConfirmId] = (0, import_react.useState)(null);
+	const [checking, setChecking] = (0, import_react.useState)(false);
+	const [checkNote, setCheckNote] = (0, import_react.useState)(null);
+	const [checkAlert, setCheckAlert] = (0, import_react.useState)(false);
 	const formRef = (0, import_react.useRef)(null);
+	(0, import_react.useEffect)(() => {
+		if (!canCheck || products.length === 0) return;
+		let stop = false;
+		runCheck(false);
+		const id = window.setInterval(() => {
+			if (!stop) runCheck(false);
+		}, 9e5);
+		return () => {
+			stop = true;
+			window.clearInterval(id);
+		};
+	}, [canCheck, products.length === 0]);
 	(0, import_react.useEffect)(() => {
 		if (!open) return;
 		formRef.current?.scrollIntoView({ block: "start" });
@@ -454,7 +474,8 @@ function ProductsCard({ products, onChange }) {
 			...product,
 			offers: product.offers.map((offer) => offer.id === offerId ? {
 				...offer,
-				inStock
+				inStock,
+				checkedAt: null
 			} : offer)
 		} : product));
 		try {
@@ -478,6 +499,20 @@ function ProductsCard({ products, onChange }) {
 			setError(messageOf(err));
 		} finally {
 			setPending(false);
+		}
+	}
+	async function runCheck(force) {
+		setChecking(true);
+		try {
+			const result = await refreshStock({ data: { force } });
+			onChange(result.products);
+			setCheckNote(result.detail);
+			setCheckAlert(result.state === "rejected" || result.state === "unreachable");
+		} catch (err) {
+			setCheckNote(messageOf(err));
+			setCheckAlert(true);
+		} finally {
+			setChecking(false);
 		}
 	}
 	async function copyLink(code) {
@@ -507,6 +542,18 @@ function ProductsCard({ products, onChange }) {
 						className: "size-4",
 						"aria-hidden": "true"
 					}), "Novo"]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "flex flex-col gap-2 px-2 pt-2",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: cn("text-sm leading-snug", checkAlert ? "text-primary" : "text-muted"),
+					children: checking ? "Conferindo na Shopee…" : checkNote ?? "Na visita, a Shopee confirma o estoque quando a URL tem o código …-i.loja.item."
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+					className: "w-full",
+					onClick: () => runCheck(true),
+					disabled: checking || products.length === 0,
+					children: checking ? "Conferindo…" : "Conferir estoque"
 				})]
 			}),
 			open ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
@@ -695,9 +742,12 @@ function ProductsCard({ products, onChange }) {
 											className: "block truncate",
 											children: offer.shop
 										})]
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-										className: cn("text-sm", offer.inStock ? "text-fg" : "text-muted"),
-										children: offer.inStock ? "Em estoque" : "Sem estoque"
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+										className: cn("text-right text-sm", offer.inStock ? "text-fg" : "text-muted"),
+										children: [offer.inStock ? "Em estoque" : "Sem estoque", offer.checkedAt ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "mt-0.5 block text-xs text-muted",
+											children: "pela Shopee"
+										}) : null]
 									})]
 								}) }, offer.id))
 							}),
@@ -812,7 +862,7 @@ var STEPS = [
 	},
 	{
 		title: "Colar uma vez",
-		body: "O mesmo endereço no story, no grupo ou na bio. O destino muda sozinho."
+		body: "O mesmo endereço no story, no grupo ou na bio. O clique cai na oferta com estoque."
 	}
 ];
 function Home() {
@@ -855,7 +905,7 @@ function Home() {
 		/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
 			className: "mt-8 text-sm leading-relaxed text-muted lg:mt-12",
 			children: [
-				"Esta é a regra do link, com um produto de exemplo. Quem clica não precisa de conta. O que você cadastrar fica só com você. A mesma decisão responde em",
+				"Quem clica não precisa de conta: o endereço manda direto para a oferta com estoque. Se todas acabarem, a pessoa vê que esgotou. A decisão também responde em",
 				" ",
 				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("a", {
 					className: "font-medium text-fg underline decoration-border underline-offset-4",

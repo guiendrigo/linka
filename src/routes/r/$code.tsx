@@ -1,7 +1,7 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { AppShell } from "@/components/linka/shell";
 import { resolveCode } from "@/lib/linka/resolve.functions";
-import { formatBrl, resolutionCopy, resolveSmartLink, withStock } from "@/lib/linka/resolve";
+import { formatBrl, redirectTarget, resolutionCopy, resolveSmartLink, withStock } from "@/lib/linka/resolve";
 import { buttonVariants } from "@/components/ui/button";
 
 export const Route = createFileRoute("/r/$code")({
@@ -13,7 +13,16 @@ export const Route = createFileRoute("/r/$code")({
     const result = await resolveCode({ data: params.code });
     if (!result.found) throw notFound();
     const link = withStock(result.link, deps.on);
-    return { link, resolution: resolveSmartLink(link) };
+    const resolution = resolveSmartLink(link);
+    const target = redirectTarget(resolution);
+    if (target) {
+      throw redirect({
+        href: target,
+        statusCode: 302,
+        headers: { "cache-control": "no-store" },
+      });
+    }
+    return { link, resolution };
   },
   head: ({ loaderData }) => ({
     meta: loaderData
@@ -26,39 +35,31 @@ export const Route = createFileRoute("/r/$code")({
 
 function VisitorPage() {
   const { link, resolution } = Route.useLoaderData();
-  const copy = resolutionCopy(resolution);
-  const role =
+  const copy =
     resolution.status === "ok"
-      ? resolution.role === "primary"
-        ? "Oferta principal"
-        : `Backup ${resolution.hop}`
-      : "Sem destino";
+      ? {
+          title: "Destino bloqueado",
+          body: "A oferta não é um link https. O clique não sai.",
+        }
+      : resolutionCopy(resolution);
+  const eyebrow = resolution.status === "empty" ? "Link sem destino" : "Oferta esgotada";
 
   return (
     <AppShell account={false}>
-      <article className="mx-auto mt-10 w-full max-w-md">
-        <p className="text-sm font-semibold tracking-wide text-primary uppercase">Visita do link</p>
+      <article className="mx-auto mt-16 w-full max-w-md">
+        <p className="text-sm font-semibold tracking-wide text-primary uppercase">{eyebrow}</p>
         <h1 className="mt-3 text-4xl leading-none font-semibold tracking-tight">{link.title}</h1>
         <p className="mt-3 text-muted">
           <span className="tabular-nums">{formatBrl(link.priceCents)}</span>
           <span> · </span>
           <span className="tabular-nums">{link.commissionPct}%</span>
         </p>
-
         <div className="mt-8 rounded-3xl bg-surface p-2 shadow-ring">
           <div className="rounded-2xl bg-bg px-4 py-5">
-            <p className="text-xs font-semibold tracking-wide text-muted uppercase">{role}</p>
-            <p className="mt-2 font-display text-3xl font-semibold">{copy.title}</p>
+            <p className="font-display text-3xl font-semibold">{copy.title}</p>
             <p className="mt-3 text-sm leading-relaxed text-muted">{copy.body}</p>
-            {resolution.status === "ok" ? (
-              <p className="mt-4 text-sm break-all text-fg">{resolution.offer.url}</p>
-            ) : null}
           </div>
         </div>
-
-        <Link to="/" className={`${buttonVariants({ variant: "ghost" })} mt-4 w-full`}>
-          Voltar para a bancada
-        </Link>
       </article>
     </AppShell>
   );
@@ -69,7 +70,7 @@ function MissingLink() {
     <AppShell account={false}>
       <div className="mx-auto mt-16 w-full max-w-md">
         <h1 className="text-4xl leading-none font-semibold">Esse link não existe.</h1>
-        <p className="mt-4 text-muted">O código não está no catálogo de exemplo.</p>
+        <p className="mt-4 text-muted">Esse endereço não aponta para nenhum produto.</p>
         <Link to="/" className={`${buttonVariants({ variant: "primary" })} mt-8 w-full`}>
           Ir para o início
         </Link>

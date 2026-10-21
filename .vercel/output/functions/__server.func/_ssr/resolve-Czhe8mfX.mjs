@@ -1,4 +1,4 @@
-//#region node_modules/.nitro/vite/services/ssr/assets/resolve-Di4BB_Yg.js
+//#region node_modules/.nitro/vite/services/ssr/assets/resolve-Czhe8mfX.js
 var LINKS = [{
 	code: "serum-c",
 	title: "Sérum vitamina C 30 ml",
@@ -91,5 +91,18 @@ function resolutionCopy(resolution) {
 		body: "A principal está sem estoque. O clique segue para o primeiro backup disponível."
 	};
 }
+/** URL https para onde o clique deve ir. Qualquer outra coisa fica na página. */
+function redirectTarget(resolution) {
+	if (resolution.status !== "ok") return null;
+	const url = resolution.offer.url.trim();
+	if (!url.startsWith("https://") || /\s/.test(url)) return null;
+	try {
+		const parsed = new URL(url);
+		if (parsed.protocol !== "https:" || parsed.username || parsed.password) return null;
+		return url;
+	} catch {
+		return null;
+	}
+}
 //#endregion
-export { resolveSmartLink as a, resolutionCopy as i, findLink as n, stockQuery as o, formatBrl as r, withStock as s, DEMO_CODE as t };
+export { resolutionCopy as a, withStock as c, redirectTarget as i, findLink as n, resolveSmartLink as o, formatBrl as r, stockQuery as s, DEMO_CODE as t };

@@ -10,6 +10,7 @@ import {
   addProduct,
   editProduct,
   getWorkspace,
+  refreshStock,
   removeProduct,
   removeShopeeCredentials,
   saveShopeeCredentials,
@@ -77,6 +78,7 @@ export function Workspace() {
       />
       <ProductsCard
         products={data.products}
+        canCheck={data.shopee.connected}
         onChange={(products) => setData({ ...data, products })}
       />
     </section>
@@ -134,7 +136,8 @@ function CredentialsCard({
         <p className="text-sm font-semibold tracking-wide text-primary uppercase">Shopee</p>
         <h3 className="mt-1 text-xl font-semibold">Credenciais de afiliado</h3>
         <p className="mt-2 text-sm leading-relaxed text-muted">
-          App ID e segredo do Open API. O segredo fica no servidor e não volta para esta tela.
+          App ID e segredo do Open API. O segredo fica no servidor, também para a conferência de
+          estoque, e não volta para esta tela.
         </p>
         {shopee.connected && !editing ? (
           <div className="mt-4 flex flex-col gap-3">
@@ -186,9 +189,11 @@ function CredentialsCard({
 
 function ProductsCard({
   products,
+  canCheck,
   onChange,
 }: {
   products: WorkspaceProduct[];
+  canCheck: boolean;
   onChange: (next: WorkspaceProduct[]) => void;
 }) {
   const [open, setOpen] = useState(products.length === 0);
@@ -201,7 +206,23 @@ function ProductsCard({
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [checkNote, setCheckNote] = useState<string | null>(null);
+  const [checkAlert, setCheckAlert] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (!canCheck || products.length === 0) return;
+    let stop = false;
+    void runCheck(false);
+    const id = window.setInterval(() => {
+      if (!stop) void runCheck(false);
+    }, 15 * 60 * 1000);
+    return () => {
+      stop = true;
+      window.clearInterval(id);
+    };
+  }, [canCheck, products.length === 0]);
 
   useEffect(() => {
     if (!open) return;
@@ -247,7 +268,7 @@ function ProductsCard({
           ? {
               ...product,
               offers: product.offers.map((offer) =>
-                offer.id === offerId ? { ...offer, inStock } : offer,
+                offer.id === offerId ? { ...offer, inStock, checkedAt: null } : offer,
               ),
             }
           : product,
@@ -275,6 +296,21 @@ function ProductsCard({
     }
   }
 
+  async function runCheck(force: boolean) {
+    setChecking(true);
+    try {
+      const result = await refreshStock({ data: { force } });
+      onChange(result.products);
+      setCheckNote(result.detail);
+      setCheckAlert(result.state === "rejected" || result.state === "unreachable");
+    } catch (err) {
+      setCheckNote(messageOf(err));
+      setCheckAlert(true);
+    } finally {
+      setChecking(false);
+    }
+  }
+
   async function copyLink(code: string) {
     const prefix = previewPathPrefix(window.location.hostname, window.location.pathname) ?? "";
     try {
@@ -295,6 +331,16 @@ function ProductsCard({
         <Button variant="ghost" onClick={beginCreate}>
           <Plus className="size-4" aria-hidden="true" />
           Novo
+        </Button>
+      </div>
+      <div className="flex flex-col gap-2 px-2 pt-2">
+        <p className={cn("text-sm leading-snug", checkAlert ? "text-primary" : "text-muted")}>
+          {checking
+            ? "Conferindo na Shopee…"
+            : (checkNote ?? "Na visita, a Shopee confirma o estoque quando a URL tem o código …-i.loja.item.")}
+        </p>
+        <Button className="w-full" onClick={() => runCheck(true)} disabled={checking || products.length === 0}>
+          {checking ? "Conferindo…" : "Conferir estoque"}
         </Button>
       </div>
 
@@ -454,8 +500,9 @@ function ProductsCard({
                           </span>
                           <span className="block truncate">{offer.shop}</span>
                         </span>
-                        <span className={cn("text-sm", offer.inStock ? "text-fg" : "text-muted")}>
+                        <span className={cn("text-right text-sm", offer.inStock ? "text-fg" : "text-muted")}>
                           {offer.inStock ? "Em estoque" : "Sem estoque"}
+                          {offer.checkedAt ? <span className="mt-0.5 block text-xs text-muted">pela Shopee</span> : null}
                         </span>
                       </button>
                     </li>
