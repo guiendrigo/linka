@@ -1,0 +1,40 @@
+{
+  "url": "http://127.0.0.1:8081",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Linka",
+      "hasCanvas": false,
+      "bodyTextLen": 956,
+      "bodyTextHash": "b0f6645940620128a2c2669c00fcd7c0a4e0bcba5d5de3f787382b1b17dabc57",
+      "bodyTextPrefix": "Linka Entrar PARA QUEM VENDE NA SHOPEE O clique não se perde qua",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/artifacts/linka-built.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Linka",
+      "hasCanvas": false,
+      "bodyTextLen": 956,
+      "bodyTextHash": "b0f6645940620128a2c2669c00fcd7c0a4e0bcba5d5de3f787382b1b17dabc57",
+      "bodyTextPrefix": "Linka Entrar PARA QUEM VENDE NA SHOPEE O clique não se perde qua",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/artifacts/linka-built-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/artifacts/linka-built.json",
+  "divergesFromBaseline": true,
+  "baselineReasons": [
+    "desktop: body text replaced (similar length, page start changed)"
+  ]
+}
