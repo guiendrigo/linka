@@ -9,15 +9,20 @@ O plano original pedia Next.js, Hono, Cloudflare Workers, Turso, Clerk, Stripe e
 ### Base
 
 - Home pública em português, mobile primeiro, com o simulador do sérum (`/r/serum-c`).
-- Quem entra vê a conta em casca de console: Links e Shopee na barra, gaveta no celular. Plano só aparece com `VITE_BILLING_ENABLED=true`. A home pública, o link `/r/...` e a bio `/p/...` ficam sem essa barra.
+- Quem entra vê a conta em casca de console: Links na barra, gaveta no celular. Plano só aparece com `VITE_BILLING_ENABLED=true`. A home pública, o link `/r/...` e a bio `/p/...` ficam sem essa barra.
 - Conta por Google, X ou e-mail e senha. Não há magic link.
-- Cada pessoa só vê as próprias credenciais e os próprios produtos. O link público não pede conta.
+- Cada pessoa só vê os próprios produtos. O link público não pede conta.
 - Quem entra ganha uma página de bio em `/p/codigo` (código opaco, não muda). Título, descrição e foto ficam no topo de Links; cada produto pode ficar visível ou oculto. O visitante vê título, preço e **Ver oferta**, sem comissão. Produto esgotado some da bio.
 
-### Credenciais da Shopee
+### Estoque automático
 
-- App ID e segredo ficam no servidor. A tela mostra o App ID e não devolve o segredo.
-- Dá para trocar ou remover.
+- A conferência usa a Open API de afiliado da Shopee (`productOfferV2`) com App ID e segredo **da plataforma** (`SHOPEE_AFFILIATE_APP_ID` / `SHOPEE_AFFILIATE_SECRET`). O afiliado não cola chave.
+- Sem as duas env, o estoque marcado na mão continua. Com elas, a visita e o botão **Conferir estoque** consultam o catálogo.
+- Se a URL tem o código do produto (`…-i.loja.item` ou `/product/loja/item`), a leitura vale 15 minutos e é compartilhada entre contas que apontam para o mesmo item.
+- Oferta ainda no catálogo: em estoque. Catálogo vazio: sem estoque, e o link cai no backup.
+- Limite da Shopee (`10030`) é aviso de indisponível agora, não de chave errada. Falha de acesso também não pede App ID ao usuário.
+- URL sem código, ou a Shopee fora do ar: o estoque marcado na mão continua. O interruptor manual vale até a próxima conferência bem-sucedida.
+- O destino do clique é sempre a URL que a pessoa colou. O Linka não usa `offerLink` nem gera short link da conta da plataforma.
 
 ### Produtos e backups
 
@@ -41,14 +46,6 @@ O plano original pedia Next.js, Hono, Cloudflare Workers, Turso, Clerk, Stripe e
 - Flag `VITE_BILLING_ENABLED`: só `"true"` liga a tela **Plano**, o SDK e o checkout. Sem a flag, `/plano` volta para a home.
 - Hoje a flag está desligada: discovery não cobra.
 - Ainda não há limite do que a conta gratuita pode guardar.
-
-### Estoque
-
-- Se a URL tem o código do produto (`…-i.loja.item` ou `/product/loja/item`), a visita consulta a Open API de afiliado da Shopee (`productOfferV2`).
-- Oferta ainda no catálogo: em estoque. Catálogo vazio: sem estoque, e o link cai no backup.
-- A leitura vale 15 minutos. Também roda ao abrir a conta e no botão **Conferir estoque**.
-- URL sem esse código, ou Shopee recusando App ID, segredo ou acesso: o estoque marcado na mão continua.
-- O interruptor manual ainda existe para esses casos. Uma marcação manual vale até a próxima conferência bem-sucedida.
 
 ## O que ainda não existe
 
@@ -77,11 +74,10 @@ O plano original pedia Next.js, Hono, Cloudflare Workers, Turso, Clerk, Stripe e
 ### Etapa 10 — polimento
 
 - Link encurtado (`shope.ee`) ainda não entra na conferência: falta o código da loja e do item.
-- O segredo fica no banco, sem cofre próprio.
-- A consulta de estoque ainda não foi fechada com uma conta de afiliado que a Shopee aceite. Com credencial recusada, o app avisa e não mexe no estoque.
 - Não há fila nem cron fora do processo do servidor. Quem não abre a conta depende da visita, no máximo a cada 15 minutos.
 - Textos de sair da conta continuam em inglês, porque esse controle é da plataforma.
 - A bio não tem handle escolhido, links extras (WhatsApp, Instagram, Pix) nem contagem de cliques.
+- Não há OAuth da Open Platform para a loja do próprio afiliado. Dados de vendedor além do catálogo de afiliado ficam para depois.
 
 ## Ordem sugerida
 

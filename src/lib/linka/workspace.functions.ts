@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { cleanBioIdentity, parsePhotoBase64 } from "@/lib/linka/bio";
-import { cleanCredentials, cleanProduct } from "@/lib/linka/input";
+import { cleanProduct } from "@/lib/linka/input";
 import type { BioPageView, StockReport, WorkspaceProduct, WorkspaceView } from "@/lib/linka/store.server";
 
 export const getWorkspace = createServerFn({ method: "GET" })
@@ -9,29 +9,6 @@ export const getWorkspace = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<WorkspaceView> => {
     const { loadWorkspace } = await import("@/lib/linka/store.server");
     return loadWorkspace(context.userId);
-  });
-
-export const saveShopeeCredentials = createServerFn({ method: "POST" })
-  .middleware([authMiddleware])
-  .validator((data: unknown) => {
-    const body = asRecord(data);
-    return cleanCredentials({
-      appId: typeof body.appId === "string" ? body.appId : "",
-      secret: typeof body.secret === "string" ? body.secret : "",
-    });
-  })
-  .handler(async ({ context, data }) => {
-    const { saveCredentials } = await import("@/lib/linka/store.server");
-    await saveCredentials(context.userId, data.appId, data.secret);
-    return { ok: true as const };
-  });
-
-export const removeShopeeCredentials = createServerFn({ method: "POST" })
-  .middleware([authMiddleware])
-  .handler(async ({ context }) => {
-    const { clearCredentials } = await import("@/lib/linka/store.server");
-    await clearCredentials(context.userId);
-    return { ok: true as const };
   });
 
 export const addProduct = createServerFn({ method: "POST" })

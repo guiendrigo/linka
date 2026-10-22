@@ -12,6 +12,11 @@ services:
       PORT: "3000"
     expose:
       - "3000"
+    networks:
+      default: {}
+      openreply:
+        aliases:
+          - linka
     volumes:
       - linka-data:/data
     healthcheck:
@@ -34,6 +39,11 @@ services:
   #   command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
   #   depends_on:
   #     - app
+
+networks:
+  openreply:
+    external: true
+    name: openreply_default
 
 volumes:
   linka-data:

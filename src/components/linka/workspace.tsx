@@ -1,4 +1,4 @@
-import { Check, Copy, Link2, Plus, Store, Trash2 } from "lucide-react";
+import { Check, Copy, Link2, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { SidePanel } from "@/components/linka/side-panel";
@@ -6,16 +6,14 @@ import { PHOTO_MAX_BYTES } from "@/lib/linka/bio";
 import { formatBrl, resolutionCopy, resolveSmartLink } from "@/lib/linka/resolve";
 import { centsToBrlInput, type OfferDraft } from "@/lib/linka/input";
 import { previewPathPrefix } from "@/lib/preview-path-prefix";
-import type { BioPageView, WorkspaceProduct, WorkspaceView } from "@/lib/linka/store.server";
+import type { BioPageView, WorkspaceProduct } from "@/lib/linka/store.server";
 import {
   addProduct,
   editProduct,
   refreshStock,
   removeProduct,
-  removeShopeeCredentials,
   saveBioPage,
   saveBioPagePhoto,
-  saveShopeeCredentials,
   setBioVisible,
 } from "@/lib/linka/workspace.functions";
 import { cn } from "@/lib/cn";
@@ -45,140 +43,6 @@ export function WorkspacePending({ error }: { error: string | null }) {
         <p className="text-sm text-primary">{error}</p>
       ) : (
         <div className="h-40 animate-pulse rounded-3xl bg-surface" />
-      )}
-    </div>
-  );
-}
-
-export function ShopeePanel({
-  shopee,
-  onChange,
-}: {
-  shopee: WorkspaceView["shopee"];
-  onChange: (next: WorkspaceView["shopee"]) => void;
-}) {
-  const [appId, setAppId] = useState("");
-  const [secret, setSecret] = useState("");
-  const [editing, setEditing] = useState(shopee.connected === false);
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    if (!copied) return;
-    const id = window.setTimeout(() => setCopied(false), 1600);
-    return () => window.clearTimeout(id);
-  }, [copied]);
-
-  async function onSubmit(event: FormEvent) {
-    event.preventDefault();
-    setPending(true);
-    setError(null);
-    try {
-      await saveShopeeCredentials({ data: { appId, secret } });
-      onChange({ connected: true, appId: appId.trim() });
-      setSecret("");
-      setEditing(false);
-    } catch (err) {
-      setError(messageOf(err));
-    } finally {
-      setPending(false);
-    }
-  }
-
-  async function remove() {
-    setPending(true);
-    setError(null);
-    try {
-      await removeShopeeCredentials();
-      onChange({ connected: false });
-      setAppId("");
-      setSecret("");
-      setEditing(true);
-    } catch (err) {
-      setError(messageOf(err));
-    } finally {
-      setPending(false);
-    }
-  }
-
-  async function copyAppId(value: string) {
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(true);
-    } catch {
-      setCopied(false);
-    }
-  }
-
-  return (
-    <div className="max-w-md rounded-3xl border border-dashed border-border bg-surface p-4">
-      <div className="flex items-start gap-3">
-        <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary">
-          <Store className="size-5" aria-hidden="true" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="font-medium">Shopee</p>
-          <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted">
-            <span
-              className={cn("size-1.5 rounded-full", shopee.connected && !editing ? "bg-primary" : "bg-muted")}
-              aria-hidden="true"
-            />
-            {shopee.connected && !editing ? "Conectado" : "Não conectado"}
-          </p>
-        </div>
-      </div>
-
-      {shopee.connected && !editing ? (
-        <div className="mt-4 flex flex-col gap-3">
-          <div className="flex items-center justify-between gap-2">
-            <p className="min-w-0 truncate font-mono text-sm">{shopee.appId}</p>
-            <button
-              type="button"
-              className="grid size-11 shrink-0 place-items-center rounded-full text-muted hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              onClick={() => copyAppId(shopee.appId)}
-            >
-              {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-              <span className="sr-only">{copied ? "Copiado" : "Copiar App ID"}</span>
-            </button>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Button variant="ghost" className="w-full" onClick={() => setEditing(true)} disabled={pending}>
-              Trocar
-            </Button>
-            <Button variant="ghost" className="w-full" onClick={remove} disabled={pending}>
-              Remover
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <form className="mt-4 flex flex-col gap-3" onSubmit={onSubmit}>
-          <label className="flex flex-col gap-1.5 text-sm font-medium">
-            App ID
-            <input value={appId} onChange={(event) => setAppId(event.target.value)} autoComplete="off" className={fieldClass} />
-          </label>
-          <label className="flex flex-col gap-1.5 text-sm font-medium">
-            Segredo
-            <input
-              type="password"
-              value={secret}
-              onChange={(event) => setSecret(event.target.value)}
-              autoComplete="new-password"
-              className={fieldClass}
-            />
-          </label>
-          {error ? <p className="text-sm text-primary">{error}</p> : null}
-          <div className="grid grid-cols-2 gap-2">
-            <Button type="submit" className="w-full" disabled={pending}>
-              {pending ? "Salvando…" : "Salvar"}
-            </Button>
-            {shopee.connected ? (
-              <Button type="button" variant="ghost" className="w-full" onClick={() => setEditing(false)}>
-                Cancelar
-              </Button>
-            ) : null}
-          </div>
-        </form>
       )}
     </div>
   );
@@ -423,7 +287,12 @@ export function LinksPanel({
       const result = await refreshStock({ data: { force } });
       onChange({ products: result.products });
       setCheckNote(result.detail);
-      setCheckAlert(result.state === "rejected" || result.state === "unreachable");
+      setCheckAlert(
+        result.state === "rejected" ||
+          result.state === "unreachable" ||
+          result.state === "throttled" ||
+          result.state === "not_configured",
+      );
     } catch (err) {
       setCheckNote(messageOf(err));
       setCheckAlert(true);

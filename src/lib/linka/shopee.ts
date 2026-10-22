@@ -71,9 +71,15 @@ export function interpretOfferResponse(body: unknown, itemId: string): "in" | "o
   return ids.some((id) => id === itemId) ? "in" : "out";
 }
 
-export function looksLikeAuthFailure(body: unknown): boolean {
+export function looksLikeRateLimit(body: unknown): boolean {
   const text = typeof body === "string" ? body : JSON.stringify(body ?? "");
-  return /signature|credential|unauthorized|do not have access|permission denied|forbidden|invalid auth|\b10020\b|\b10030\b|\b10035\b/i.test(
+  return /\b10030\b|rate limit/i.test(text);
+}
+
+export function looksLikeAuthFailure(body: unknown): boolean {
+  if (looksLikeRateLimit(body)) return false;
+  const text = typeof body === "string" ? body : JSON.stringify(body ?? "");
+  return /signature|credential|unauthorized|do not have access|permission denied|forbidden|invalid auth|\b10020\b|\b10035\b/i.test(
     text,
   );
 }

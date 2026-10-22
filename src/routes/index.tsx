@@ -14,16 +14,16 @@ export const Route = createFileRoute("/")({
 
 const STEPS = [
   {
-    title: "Conectar a Shopee",
-    body: "Suas credenciais de afiliado, para buscar oferta e montar o link.",
-  },
-  {
     title: "Guardar o produto",
     body: "A oferta principal e os backups, na ordem em que o clique deve tentar.",
   },
   {
     title: "Colar uma vez",
     body: "O mesmo endereço no story, no grupo ou na bio. O clique cai na oferta com estoque.",
+  },
+  {
+    title: "O estoque se resolve sozinho",
+    body: "Na visita, o Linka confere se a oferta ainda está no ar e cai no backup se acabou.",
   },
 ];
 
@@ -59,7 +59,7 @@ function LinksHome() {
         <LinksPanel
           bio={data.bio}
           products={data.products}
-          canCheck={data.shopee.connected}
+          canCheck={data.stock.automatic}
           onChange={(patch) => setData({ ...data, ...patch })}
           composing={composing}
           composeNonce={composeNonce}

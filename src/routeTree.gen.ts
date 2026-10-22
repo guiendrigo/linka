@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PlanoRouteImport } from './routes/plano'
-import { Route as ShopeeRouteImport } from './routes/shopee'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as RCodeRouteImport } from './routes/r/$code'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -33,11 +32,6 @@ const LoginRoute = LoginRouteImport.update({
 const PlanoRoute = PlanoRouteImport.update({
   id: '/plano',
   path: '/plano',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ShopeeRoute = ShopeeRouteImport.update({
-  id: '/shopee',
-  path: '/shopee',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
@@ -75,7 +69,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/plano': typeof PlanoRoute
-  '/shopee': typeof ShopeeRoute
   '/api/health': typeof ApiHealthRoute
   '/r/$code': typeof RCodeRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -87,7 +80,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/plano': typeof PlanoRoute
-  '/shopee': typeof ShopeeRoute
   '/api/health': typeof ApiHealthRoute
   '/r/$code': typeof RCodeRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -100,7 +92,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/plano': typeof PlanoRoute
-  '/shopee': typeof ShopeeRoute
   '/api/health': typeof ApiHealthRoute
   '/r/$code': typeof RCodeRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -114,7 +105,6 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/plano'
-    | '/shopee'
     | '/api/health'
     | '/r/$code'
     | '/api/auth/$'
@@ -126,7 +116,6 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/plano'
-    | '/shopee'
     | '/api/health'
     | '/r/$code'
     | '/api/auth/$'
@@ -138,7 +127,6 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/plano'
-    | '/shopee'
     | '/api/health'
     | '/r/$code'
     | '/api/auth/$'
@@ -151,7 +139,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
   PlanoRoute: typeof PlanoRoute
-  ShopeeRoute: typeof ShopeeRoute
   ApiHealthRoute: typeof ApiHealthRoute
   RCodeRoute: typeof RCodeRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -181,13 +168,6 @@ declare module '@tanstack/react-router' {
       path: '/plano'
       fullPath: '/plano'
       preLoaderRoute: typeof PlanoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/shopee': {
-      id: '/shopee'
-      path: '/shopee'
-      fullPath: '/shopee'
-      preLoaderRoute: typeof ShopeeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/health': {
@@ -239,7 +219,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
   PlanoRoute: PlanoRoute,
-  ShopeeRoute: ShopeeRoute,
   ApiHealthRoute: ApiHealthRoute,
   RCodeRoute: RCodeRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

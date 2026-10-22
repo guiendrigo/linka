@@ -9,7 +9,9 @@ import {
   type PhotoMime,
 } from "@/lib/linka/bio";
 import { productCode, type CleanProduct } from "@/lib/linka/input";
-import { parseShopeeItem, STOCK_FRESH_MS } from "@/lib/linka/shopee";
+import { STOCK_FRESH_MS } from "@/lib/linka/shopee";
+import { resolveAffiliateCredential } from "@/lib/linka/shopee/credentials.server";
+import { decideStock } from "@/lib/linka/stock-check.server";
 import type { SmartLink } from "@/lib/linka/types";
 
 export type WorkspaceOffer = {
@@ -38,7 +40,7 @@ export type BioPageView = {
 };
 
 export type WorkspaceView = {
-  shopee: { connected: false } | { connected: true; appId: string };
+  stock: { automatic: boolean };
   bio: BioPageView;
   products: WorkspaceProduct[];
 };
@@ -55,7 +57,7 @@ export type PublicBioPage = {
 export type MissingBioPage = { found: false };
 
 export type StockReport = {
-  state: "fresh" | "updated" | "skipped" | "need_credentials" | "rejected" | "unreachable";
+  state: "fresh" | "updated" | "skipped" | "not_configured" | "throttled" | "rejected" | "unreachable";
   changed: number;
   detail: string;
   products: WorkspaceProduct[];
@@ -88,13 +90,6 @@ function asIso(value: unknown): string | null {
   if (value instanceof Date) return value.toISOString();
   if (typeof value === "string" && value.trim()) return value;
   return null;
-}
-
-function isFresh(value: unknown, now: number): boolean {
-  const iso = asIso(value);
-  if (!iso) return false;
-  const then = Date.parse(iso);
-  return Number.isFinite(then) && now - then < STOCK_FRESH_MS;
 }
 
 function groupProducts(rows: ProductRow[]): WorkspaceProduct[] {
@@ -135,16 +130,12 @@ const productSelect = `
 
 export async function loadWorkspace(userId: string): Promise<WorkspaceView> {
   const sql = await getSql();
-  const creds = await sql<{ app_id: string }>`
-    select app_id from shopee_credentials where user_id = ${userId}
-  `;
   const listed = await sql.query<ProductRow>(
     `${productSelect} where p.user_id = $1 order by p.created_at desc, o.position asc`,
     [userId],
   );
-  const credential = creds[0];
   return {
-    shopee: credential ? { connected: true, appId: credential.app_id } : { connected: false },
+    stock: { automatic: resolveAffiliateCredential(userId) != null },
     bio: await ensureBioPage(userId),
     products: groupProducts(listed),
   };
@@ -303,24 +294,6 @@ function asBytes(value: unknown): Uint8Array | null {
   return null;
 }
 
-export async function saveCredentials(userId: string, appId: string, secret: string): Promise<void> {
-  const sql = await getSql();
-  const updatedAt = new Date().toISOString();
-  await sql`
-    insert into shopee_credentials (user_id, app_id, secret, updated_at)
-    values (${userId}, ${appId}, ${secret}, ${updatedAt})
-    on conflict (user_id) do update
-      set app_id = excluded.app_id,
-          secret = excluded.secret,
-          updated_at = excluded.updated_at
-  `;
-}
-
-export async function clearCredentials(userId: string): Promise<void> {
-  const sql = await getSql();
-  await sql`delete from shopee_credentials where user_id = ${userId}`;
-}
-
 export async function createProduct(userId: string, input: CleanProduct): Promise<WorkspaceProduct> {
   const sql = await getSql();
   const id = crypto.randomUUID();
@@ -452,128 +425,13 @@ export async function findStoredLink(code: string): Promise<SmartLink | null> {
   };
 }
 
-const LOOKUP_CAP = 8;
-
-type OfferWork = {
-  id: string;
-  url: string;
-  inStock: boolean;
-  checkedAt: unknown;
-};
-
 export async function checkStock(
   userId: string,
   options?: { force?: boolean; productId?: string },
 ): Promise<StockReport> {
-  const sql = await getSql();
-  const force = options?.force === true;
-  const productId = options?.productId;
-  const rows = productId
-    ? await sql<{ id: string; url: string; in_stock: unknown; checked_at: unknown }>`
-        select id, url, in_stock, checked_at from offers
-        where user_id = ${userId} and product_id = ${productId}
-      `
-    : await sql<{ id: string; url: string; in_stock: unknown; checked_at: unknown }>`
-        select id, url, in_stock, checked_at from offers where user_id = ${userId}
-      `;
-  const offers: OfferWork[] = rows.map((row) => ({
-    id: row.id,
-    url: row.url,
-    inStock: asBool(row.in_stock),
-    checkedAt: row.checked_at,
-  }));
-  const now = Date.now();
-  const due = force ? offers : offers.filter((offer) => !isFresh(offer.checkedAt, now));
-  if (due.length === 0) {
-    const view = await loadWorkspace(userId);
-    return {
-      state: "fresh",
-      changed: 0,
-      detail: "Conferido há pouco. Nada novo para buscar.",
-      products: view.products,
-    };
-  }
-
-  const skipped: OfferWork[] = [];
-  const groups = new Map<string, { shopId: string; itemId: string; offers: OfferWork[] }>();
-  for (const offer of due) {
-    const item = parseShopeeItem(offer.url);
-    if (!item) {
-      skipped.push(offer);
-      continue;
-    }
-    const key = `${item.shopId}:${item.itemId}`;
-    const group = groups.get(key);
-    if (group) group.offers.push(offer);
-    else groups.set(key, { shopId: item.shopId, itemId: item.itemId, offers: [offer] });
-  }
-
-  if (groups.size === 0) {
-    const view = await loadWorkspace(userId);
-    return {
-      state: "skipped",
-      changed: 0,
-      detail: "Nenhum link tem o código do produto (…-i.loja.item). O estoque que você marcou continua.",
-      products: view.products,
-    };
-  }
-
-  const creds = await sql<{ app_id: string; secret: string }>`
-    select app_id, secret from shopee_credentials where user_id = ${userId}
-  `;
-  const credential = creds[0];
-  if (!credential) {
-    const view = await loadWorkspace(userId);
-    return {
-      state: "need_credentials",
-      changed: 0,
-      detail: "Conecte a Shopee para conferir o estoque.",
-      products: view.products,
-    };
-  }
-
-  const { lookupOffer } = await import("@/lib/linka/shopee.server");
-  const queued = [...groups.values()].slice(0, LOOKUP_CAP);
-  let changed = 0;
-  let sawDecision = false;
-  for (let index = 0; index < queued.length; index += 1) {
-    const group = queued[index];
-    if (!group) continue;
-    const lookup = await lookupOffer(credential.app_id, credential.secret, group.shopId, group.itemId);
-    if (lookup.kind === "auth" || lookup.kind === "down") {
-      if (!sawDecision && index === 0) {
-        const view = await loadWorkspace(userId);
-        return {
-          state: lookup.kind === "auth" ? "rejected" : "unreachable",
-          changed: 0,
-          detail:
-            lookup.kind === "auth"
-              ? "A Shopee recusou a consulta. Confira o App ID, o segredo e o acesso à Open API. O estoque marcado continua."
-              : "Não deu para falar com a Shopee agora. O estoque marcado continua.",
-          products: view.products,
-        };
-      }
-      continue;
-    }
-    sawDecision = true;
-    const inStock = lookup.kind === "in";
-    for (const offer of group.offers) {
-      if (offer.inStock !== inStock) changed += 1;
-      await sql`
-        update offers set in_stock = ${inStock}, checked_at = ${new Date().toISOString()}
-        where id = ${offer.id} and user_id = ${userId}
-      `;
-    }
-  }
+  const decision = await decideStock(userId, options);
   const view = await loadWorkspace(userId);
-  const extra = skipped.length > 0 ? " Os links sem código de produto ficaram como você marcou." : "";
-  const detail =
-    changed === 0
-      ? `A Shopee confirmou o estoque. Nada mudou.${extra}`
-      : changed === 1
-        ? `A Shopee mudou 1 oferta.${extra}`
-        : `A Shopee mudou ${changed} ofertas.${extra}`;
-  return { state: "updated", changed, detail, products: view.products };
+  return { ...decision, products: view.products };
 }
 
 const stockCooldown = new Map<string, number>();
@@ -588,7 +446,7 @@ export async function freshenStoredStock(code: string): Promise<void> {
   const product = rows[0];
   if (!product) return;
   const report = await checkStock(product.user_id, { productId: product.id, force: false });
-  if (report.state === "rejected" || report.state === "unreachable") {
+  if (report.state === "rejected" || report.state === "unreachable" || report.state === "throttled") {
     stockCooldown.set(code, Date.now() + STOCK_FRESH_MS);
   }
 }

@@ -80,15 +80,16 @@ code before claiming a feature exists.
 - `@/lib/db` is server-only. `DATABASE_URL` selects Neon; absent/empty selects
   embedded PGLite.
 - PGLite is in-memory and resets when the dev server restarts, so preview
-  accounts, products, and Shopee credentials disappear. That is expected, not a
+  accounts, products, and stock cache disappear. That is expected, not a
   database bug.
 - Schema lives only in `migrations/*.sql`. Add app tables as
   `migrations/000N_*.sql`; PGLite applies them at startup and `npm run build`
   applies them to Neon. `migrations/auth/0001_auth.sql` is the source and
   `migrations/0001_auth.sql` must stay a byte-identical copy of it.
-- The Shopee secret is stored server-side and must never reach the client.
-  `WorkspaceView` exposes only `appId`; don't log the secret or put it in
-  `VITE_*`.
+- The Shopee Affiliate App ID/secret live in server env
+  (`SHOPEE_AFFILIATE_APP_ID`, `SHOPEE_AFFILIATE_SECRET`), never per user and
+  never in `VITE_*`. `WorkspaceView` exposes `stock.automatic`, not credentials.
+  Don't log the secret. Don't add a form for the affiliate to paste a key.
 
 ## Link and stock rules
 
@@ -105,9 +106,10 @@ code before claiming a feature exists.
   `offers`.
 - Stock checks only run for Shopee URLs containing shop/item ids; short links
   without ids are skipped. Results are fresh for 15 minutes
-  (`STOCK_FRESH_MS`), at most 8 items are looked up per run (`LOOKUP_CAP`), and
-  auth/network failures preserve the existing manual stock. A manual toggle
-  clears `checked_at`, making the next check due.
+  (`STOCK_FRESH_MS`) and shared by shop/item in `stock_checks`. At most 8 live
+  lookups run per check (`LOOKUP_CAP`). Auth, rate-limit, and network failures
+  preserve the existing manual stock. A manual toggle clears `checked_at`,
+  making the next check due. Never use Affiliate `offerLink` / short links.
 
 ## UI
 

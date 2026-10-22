@@ -5,6 +5,7 @@ import {
   authorizationHeader,
   interpretOfferResponse,
   looksLikeAuthFailure,
+  looksLikeRateLimit,
   offerQueryPayload,
   parseShopeeItem,
 } from "./shopee.ts";
@@ -39,4 +40,22 @@ test("lista vazia é sem estoque e erro não decide", () => {
     looksLikeAuthFailure("error [10035]: You currently do not have access to the Shopee Affiliate Open API Platform"),
     true,
   );
+});
+
+test("10030 é limite, não credencial recusada", () => {
+  assert.equal(looksLikeRateLimit("error [10030]: Rate limit exceeded"), true);
+  assert.equal(looksLikeAuthFailure("error [10030]: Rate limit exceeded"), false);
+  assert.equal(looksLikeAuthFailure("error [10020]: Invalid Signature"), true);
+  assert.equal(looksLikeRateLimit("error [10020]: Invalid Signature"), false);
+  assert.equal(looksLikeAuthFailure("error [10035]: no API access"), true);
+});
+
+test("a consulta de catálogo não pede tracking da conta da plataforma", () => {
+  const payload = offerQueryPayload("1", "2");
+  assert.equal(payload.includes("offerLink"), false);
+  assert.equal(payload.includes("generateShortLink"), false);
+  assert.equal(payload.includes("conversionReport"), false);
+  assert.match(payload, /itemId/);
+  assert.match(payload, /productName/);
+  assert.match(payload, /shopName/);
 });

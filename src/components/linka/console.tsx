@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Link2, Menu, Sparkles, Store, X } from "lucide-react";
+import { Link2, Menu, Sparkles, X } from "lucide-react";
 import { useEffect, useId, useState, useSyncExternalStore, type ReactNode } from "react";
 import { authEnabled, signOut } from "@/lib/auth/client";
 import { hasGateSessionMarker } from "@/lib/auth/gate-session-marker";
@@ -8,11 +8,10 @@ import { PurchasesProvider, usePurchases } from "@/components/linka/use-purchase
 import { cn } from "@/lib/cn";
 import { billingEnabled } from "@/lib/linka/purchases";
 
-type ConsolePage = "links" | "shopee" | "plano";
+type ConsolePage = "links" | "plano";
 
 const NAV = [
   { id: "links" as const, to: "/", label: "Links", icon: Link2, billing: false },
-  { id: "shopee" as const, to: "/shopee", label: "Shopee", icon: Store, billing: false },
   { id: "plano" as const, to: "/plano", label: "Plano", icon: Sparkles, billing: true },
 ];
 

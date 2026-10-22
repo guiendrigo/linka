@@ -18,31 +18,37 @@ test("ensureDbReady creates the sqlite file and records migrations", async () =>
   const rows = await sql.query<{ name: string }>("select name from _migrations order by name");
   assert.deepEqual(
     rows.map((row) => row.name),
-    ["0001_auth.sql", "0002_linka.sql"],
+    ["0001_auth.sql", "0002_linka.sql", "0003_bio_page.sql", "0004_affiliate_stock.sql"],
+  );
+  const tables = await sql.query<{ name: string }>(
+    "select name from sqlite_master where type = 'table' and name in ('stock_checks', 'shopee_credentials') order by name",
+  );
+  assert.deepEqual(
+    tables.map((row) => row.name),
+    ["stock_checks"],
   );
 });
 
-test("credential upsert stores the supplied timestamp and product delete cascades offers", async () => {
+test("stock cache stores the supplied timestamp and product delete cascades offers", async () => {
   const { getSql } = await import("./db.ts");
   const sql = await getSql();
-  const updatedAt = "2026-04-01T12:00:00.000Z";
+  const checkedAt = "2026-04-01T12:00:00.000Z";
   await sql`
-    insert into shopee_credentials (user_id, app_id, secret, updated_at)
-    values (${"user-a"}, ${"app"}, ${"secret-value"}, ${updatedAt})
-    on conflict (user_id) do update
-      set app_id = excluded.app_id,
-          secret = excluded.secret,
-          updated_at = excluded.updated_at
+    insert into stock_checks (shop_id, item_id, in_stock, checked_at)
+    values (${"123"}, ${"456"}, ${1}, ${checkedAt})
+    on conflict (shop_id, item_id) do update
+      set in_stock = excluded.in_stock,
+          checked_at = excluded.checked_at
   `;
-  const creds = await sql.query<{ updated_at: string }>(
-    "select updated_at from shopee_credentials where user_id = $1",
-    ["user-a"],
+  const cached = await sql.query<{ checked_at: string }>(
+    "select checked_at from stock_checks where shop_id = $1 and item_id = $2",
+    ["123", "456"],
   );
-  assert.equal(creds[0]?.updated_at, updatedAt);
+  assert.equal(cached[0]?.checked_at, checkedAt);
 
   await sql`
     insert into products (id, user_id, code, title, price_cents, commission_pct, created_at)
-    values (${"prod-1"}, ${"user-a"}, ${"abc"}, ${"Sérum"}, ${1990}, ${10}, ${updatedAt})
+    values (${"prod-1"}, ${"user-a"}, ${"abc"}, ${"Sérum"}, ${1990}, ${10}, ${checkedAt})
   `;
   await sql`
     insert into offers (id, product_id, user_id, position, shop, url, in_stock)

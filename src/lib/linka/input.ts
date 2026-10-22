@@ -39,21 +39,6 @@ export function centsToBrlInput(cents: number): string {
   return `${whole},${frac}`;
 }
 
-export function cleanCredentials(input: { appId?: string; secret?: string }): {
-  appId: string;
-  secret: string;
-} {
-  const appId = (input.appId ?? "").trim();
-  const secret = (input.secret ?? "").trim();
-  if (!/^[A-Za-z0-9_-]{4,64}$/.test(appId)) {
-    throw new Error("O App ID da Shopee não parece válido.");
-  }
-  if (secret.length < 8 || secret.length > 256 || /[\r\n]/.test(secret)) {
-    throw new Error("O segredo precisa ter entre 8 e 256 caracteres.");
-  }
-  return { appId, secret };
-}
-
 export function cleanProduct(input: ProductDraft): CleanProduct {
   const title = input.title.trim().replace(/\s+/g, " ");
   if (title.length < 2 || title.length > 80) {
