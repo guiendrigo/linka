@@ -1,6 +1,14 @@
 import { Check, Copy, Link2, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
-import { Button } from "@/components/ui/button";
+import { Banner } from "@astryxdesign/core/Banner";
+import { Button } from "@astryxdesign/core/Button";
+import { Card } from "@astryxdesign/core/Card";
+import { IconButton } from "@astryxdesign/core/IconButton";
+import { Switch } from "@astryxdesign/core/Switch";
+import { Text } from "@astryxdesign/core/Text";
+import { TextArea } from "@astryxdesign/core/TextArea";
+import { TextInput } from "@astryxdesign/core/TextInput";
+import { VStack } from "@astryxdesign/core/VStack";
 import { SidePanel } from "@/components/linka/side-panel";
 import { PHOTO_MAX_BYTES } from "@/lib/linka/bio";
 import { formatBrl, resolutionCopy, resolveSmartLink } from "@/lib/linka/resolve";
@@ -16,10 +24,6 @@ import {
   saveBioPagePhoto,
   setBioVisible,
 } from "@/lib/linka/workspace.functions";
-import { cn } from "@/lib/cn";
-
-const fieldClass =
-  "min-h-11 w-full rounded-2xl border border-border bg-bg px-4 text-base font-normal text-fg outline-none focus-visible:ring-2 focus-visible:ring-primary";
 
 type OfferRow = OfferDraft & { key: string };
 
@@ -36,11 +40,30 @@ function blankOffers(): OfferRow[] {
   return [offerRow(), offerRow()];
 }
 
+function stockOf(product: WorkspaceProduct) {
+  const resolution = resolveSmartLink({
+    code: product.code,
+    title: product.title,
+    detail: "",
+    priceCents: product.priceCents,
+    commissionPct: product.commissionPct,
+    offers: product.offers,
+  });
+  const copy = resolutionCopy(resolution);
+  const status =
+    resolution.status === "ok"
+      ? { label: "Em estoque", on: true }
+      : resolution.status === "all_out"
+        ? { label: "Esgotado", on: false }
+        : { label: "Sem destino", on: false };
+  return { copy, status };
+}
+
 export function WorkspacePending({ error }: { error: string | null }) {
   return (
     <div aria-busy={!error}>
       {error ? (
-        <p className="text-sm text-primary">{error}</p>
+        <Banner status="error" title={error} />
       ) : (
         <div className="h-40 animate-pulse rounded-3xl bg-surface" />
       )}
@@ -118,13 +141,15 @@ function BioBlock({ bio, onChange }: { bio: BioPageView; onChange: (next: BioPag
   const photoSrc = `${prefix}/p/${bio.code}/photo${photoNonce ? `?t=${photoNonce}` : ""}`;
 
   return (
-    <section className="rounded-3xl border border-dashed border-border bg-surface p-4">
+    <Card padding={4}>
       <div className="flex flex-wrap items-start gap-4">
-        <label className="grid size-20 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-full bg-bg shadow-ring">
+        <label className="grid size-20 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-full bg-body">
           {bio.hasPhoto ? (
             <img src={photoSrc} alt="" className="size-20 rounded-full object-cover" />
           ) : (
-            <span className="text-xs font-medium text-muted">Foto</span>
+            <Text size="sm" color="secondary">
+              Foto
+            </Text>
           )}
           <input
             type="file"
@@ -139,35 +164,33 @@ function BioBlock({ bio, onChange }: { bio: BioPageView; onChange: (next: BioPag
           />
           <span className="sr-only">{photoPending ? "Enviando foto" : "Enviar foto de perfil"}</span>
         </label>
-        <div className="min-w-0 flex-1">
-          <p className="font-medium">Página da bio</p>
-          <p className="mt-0.5 font-mono text-xs text-muted">/p/{bio.code}</p>
-          <Button variant="ghost" className="mt-2 min-h-9 px-3" onClick={copyAddress}>
-            {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-            {copied ? "Copiado" : "Copiar link"}
-          </Button>
-        </div>
-      </div>
-      <form className="mt-4 flex flex-col gap-3" onSubmit={save}>
-        <label className="flex flex-col gap-1.5 text-sm font-medium">
-          Título
-          <input value={title} onChange={(event) => setTitle(event.target.value)} className={fieldClass} />
-        </label>
-        <label className="flex flex-col gap-1.5 text-sm font-medium">
-          Descrição
-          <textarea
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            rows={3}
-            className={`${fieldClass} min-h-24 py-3`}
+        <VStack gap={1} className="min-w-0 flex-1">
+          <Text weight="medium">Página da bio</Text>
+          <Text size="sm" color="secondary">
+            /p/{bio.code}
+          </Text>
+          <Button
+            variant="secondary"
+            icon={copied ? <Check size={16} /> : <Copy size={16} />}
+            label={copied ? "Copiado" : "Copiar link"}
+            onClick={copyAddress}
           />
-        </label>
-        {error ? <p className="text-sm text-primary">{error}</p> : null}
-        <Button type="submit" className="self-start" disabled={pending || photoPending}>
-          {pending ? "Salvando…" : "Salvar página"}
-        </Button>
+        </VStack>
+      </div>
+      <form className="mt-4" onSubmit={save}>
+        <VStack gap={3}>
+          <TextInput label="Título" value={title} onChange={setTitle} width="100%" />
+          <TextArea label="Descrição" value={description} onChange={setDescription} rows={3} width="100%" />
+          {error ? <Banner status="error" title={error} /> : null}
+          <Button
+            type="submit"
+            isDisabled={pending || photoPending}
+            isLoading={pending}
+            label={pending ? "Salvando…" : "Salvar página"}
+          />
+        </VStack>
       </form>
-    </section>
+    </Card>
   );
 }
 
@@ -328,262 +351,275 @@ export function LinksPanel({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <VStack gap={4}>
       <BioBlock bio={bio} onChange={(next) => onChange({ bio: next })} />
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className={cn("text-sm leading-snug", checkAlert ? "text-primary" : "text-muted")}>
-          {checking
-            ? "Conferindo na Shopee…"
-            : (checkNote ?? "Na visita, a Shopee confirma o estoque quando a URL tem o código …-i.loja.item.")}
-        </p>
-        <Button
-          variant="ghost"
-          className="shrink-0"
-          onClick={() => runCheck(true)}
-          disabled={checking || products.length === 0}
-        >
-          {checking ? "Conferindo…" : "Conferir estoque"}
-        </Button>
+        {checkAlert ? (
+          <Banner status="warning" title={checkNote ?? "Estoque indisponível agora."} />
+        ) : (
+          <Text color="secondary" size="sm">
+            {canCheck
+              ? checking
+                ? "Conferindo na Shopee…"
+                : (checkNote ??
+                  "Na visita, a Shopee confirma o estoque quando a URL tem o código …-i.loja.item.")
+              : "Você marca o estoque de cada oferta. O clique tenta a principal e cai no backup que ainda estiver marcada."}
+          </Text>
+        )}
+        {canCheck ? (
+          <Button
+            variant="secondary"
+            label={checking ? "Conferindo…" : "Conferir estoque"}
+            isDisabled={checking || products.length === 0}
+            isLoading={checking}
+            onClick={() => runCheck(true)}
+          />
+        ) : null}
       </div>
 
-      {!composing && error ? <p className="text-sm text-primary">{error}</p> : null}
+      {!composing && error ? <Banner status="error" title={error} /> : null}
 
-      <div className="overflow-x-auto rounded-xl border border-border">
-        <table className="w-full min-w-[40rem] border-collapse text-left">
-          <thead className="bg-surface-2 text-xs font-medium tracking-wide text-muted uppercase">
-            <tr>
-              <th className="px-4 py-3 font-medium">Produto</th>
-              <th className="px-4 py-3 font-medium">Código</th>
-              <th className="px-4 py-3 font-medium">Preço</th>
-              <th className="px-4 py-3 font-medium">Estoque</th>
-              <th className="px-4 py-3 font-medium">Destino</th>
-              <th className="px-4 py-3 font-medium">Bio</th>
-              <th className="px-4 py-3 font-medium">
-                <span className="sr-only">Ações</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-16 text-center">
-                  <Link2 className="mx-auto size-8 text-muted" aria-hidden="true" />
-                  <p className="mt-3 text-sm text-muted">Nenhum produto ainda.</p>
-                  <Button className="mt-4" onClick={() => onComposingChange(true)}>
-                    <Plus className="size-4" aria-hidden="true" />
-                    Adicionar produto
-                  </Button>
-                </td>
-              </tr>
-            ) : (
-              products.map((product) => {
-                const resolution = resolveSmartLink({
-                  code: product.code,
-                  title: product.title,
-                  detail: "",
-                  priceCents: product.priceCents,
-                  commissionPct: product.commissionPct,
-                  offers: product.offers,
-                });
-                const copy = resolutionCopy(resolution);
-                const status =
-                  resolution.status === "ok"
-                    ? { label: "Em estoque", on: true }
-                    : resolution.status === "all_out"
-                      ? { label: "Esgotado", on: false }
-                      : { label: "Sem destino", on: false };
-                return (
-                  <tr key={product.id} className="border-t border-border">
-                    <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        className="text-left font-medium hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                        onClick={() => beginEdit(product)}
-                      >
-                        {product.title}
-                      </button>
-                      <p className="mt-0.5 text-xs text-muted tabular-nums">{product.commissionPct}%</p>
-                    </td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted">/r/{product.code}</td>
-                    <td className="px-4 py-3 text-sm tabular-nums">{formatBrl(product.priceCents)}</td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center gap-1.5 text-sm">
-                        <span
-                          className={cn("size-1.5 rounded-full", status.on ? "bg-primary" : "bg-muted")}
-                          aria-hidden="true"
+      {products.length === 0 ? (
+        <Card padding={8}>
+          <VStack gap={3} hAlign="center">
+            <Link2 className="size-8 text-secondary" aria-hidden="true" />
+            <Text color="secondary">Nenhum produto ainda.</Text>
+            <Button
+              icon={<Plus size={16} aria-hidden="true" />}
+              label="Adicionar produto"
+              onClick={() => onComposingChange(true)}
+            />
+          </VStack>
+        </Card>
+      ) : (
+        <>
+          <VStack gap={3} className="lg:hidden">
+            {products.map((product) => {
+              const { copy, status } = stockOf(product);
+              return (
+                <Card key={product.id} padding={4}>
+                  <VStack gap={2}>
+                    <Button
+                      variant="ghost"
+                      label={product.title}
+                      onClick={() => beginEdit(product)}
+                    />
+                    <Text size="sm" color="secondary">
+                      {status.label}
+                    </Text>
+                    <Text size="sm" color="secondary" hasTabularNumbers>
+                      {formatBrl(product.priceCents)} · {product.commissionPct}%
+                    </Text>
+                    <Text size="sm" color="secondary">
+                      /r/{product.code}
+                    </Text>
+                    <Text size="sm" color="secondary">
+                      {copy.title}
+                    </Text>
+                    <Switch
+                      label={product.bioVisible ? "Visível na bio" : "Oculto na bio"}
+                      value={product.bioVisible}
+                      isDisabled={pending}
+                      onChange={() => toggleVisible(product)}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="secondary"
+                        icon={
+                          copied === product.code ? (
+                            <Check size={16} />
+                          ) : (
+                            <Copy size={16} />
+                          )
+                        }
+                        label={copied === product.code ? "Copiado" : "Copiar"}
+                        onClick={() => copyLink(product.code)}
+                      />
+                      {confirmId === product.id ? (
+                        <Button
+                          variant="destructive"
+                          icon={<Trash2 size={16} aria-hidden="true" />}
+                          label="Sim"
+                          isDisabled={pending}
+                          onClick={() => remove(product.id)}
                         />
-                        {status.label}
-                      </span>
-                    </td>
-                    <td className="max-w-40 truncate px-4 py-3 text-sm">{copy.title}</td>
-                    <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        role="switch"
-                        aria-checked={product.bioVisible}
-                        className={cn("min-h-11 text-sm", product.bioVisible ? "text-fg" : "text-muted")}
-                        onClick={() => toggleVisible(product)}
-                        disabled={pending}
-                      >
-                        {product.bioVisible ? "Visível" : "Oculto"}
-                      </button>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end gap-1">
-                        <Button variant="ghost" className="min-h-9 px-2" onClick={() => copyLink(product.code)}>
-                          {copied === product.code ? <Check className="size-4" /> : <Copy className="size-4" />}
-                          <span className="sr-only">{copied === product.code ? "Copiado" : "Copiar"}</span>
-                        </Button>
-                        {confirmId === product.id ? (
-                          <Button className="min-h-9 px-2" onClick={() => remove(product.id)} disabled={pending}>
-                            <Trash2 className="size-4" aria-hidden="true" />
-                            Sim
-                          </Button>
-                        ) : (
-                          <Button variant="ghost" className="min-h-9 px-2" onClick={() => setConfirmId(product.id)}>
-                            Apagar
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+                      ) : (
+                        <Button variant="ghost" label="Apagar" onClick={() => setConfirmId(product.id)} />
+                      )}
+                    </div>
+                  </VStack>
+                </Card>
+              );
+            })}
+          </VStack>
 
-      <SidePanel
-        open={composing}
-        title={editingId ? "Editar produto" : "Novo produto"}
-        onClose={resetForm}
-      >
+          <div className="hidden overflow-x-auto rounded-xl border border-border lg:block">
+            <table className="w-full min-w-[40rem] border-collapse text-left">
+              <thead className="bg-muted text-xs font-medium tracking-wide text-secondary uppercase">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Produto</th>
+                  <th className="px-4 py-3 font-medium">Código</th>
+                  <th className="px-4 py-3 font-medium">Preço</th>
+                  <th className="px-4 py-3 font-medium">Estoque</th>
+                  <th className="px-4 py-3 font-medium">Destino</th>
+                  <th className="px-4 py-3 font-medium">Bio</th>
+                  <th className="px-4 py-3 font-medium">
+                    <span className="sr-only">Ações</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.map((product) => {
+                  const { copy, status } = stockOf(product);
+                  return (
+                    <tr key={product.id} className="border-t border-border">
+                      <td className="px-4 py-3">
+                        <Button variant="ghost" label={product.title} onClick={() => beginEdit(product)} />
+                        <Text size="sm" color="secondary" hasTabularNumbers>
+                          {product.commissionPct}%
+                        </Text>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Text size="sm" color="secondary">
+                          /r/{product.code}
+                        </Text>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Text size="sm" hasTabularNumbers>
+                          {formatBrl(product.priceCents)}
+                        </Text>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Text size="sm">{status.label}</Text>
+                      </td>
+                      <td className="max-w-40 truncate px-4 py-3">
+                        <Text size="sm">{copy.title}</Text>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Switch
+                          label={product.bioVisible ? "Visível" : "Oculto"}
+                          value={product.bioVisible}
+                          isDisabled={pending}
+                          onChange={() => toggleVisible(product)}
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex justify-end gap-1">
+                          <IconButton
+                            variant="ghost"
+                            label={copied === product.code ? "Copiado" : "Copiar"}
+                            icon={copied === product.code ? <Check size={16} /> : <Copy size={16} />}
+                            onClick={() => copyLink(product.code)}
+                          />
+                          {confirmId === product.id ? (
+                            <Button
+                              variant="destructive"
+                              icon={<Trash2 size={16} aria-hidden="true" />}
+                              label="Sim"
+                              isDisabled={pending}
+                              onClick={() => remove(product.id)}
+                            />
+                          ) : (
+                            <Button variant="ghost" label="Apagar" onClick={() => setConfirmId(product.id)} />
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      <SidePanel open={composing} title={editingId ? "Editar produto" : "Novo produto"} onClose={resetForm}>
         <form className="flex min-h-0 flex-1 flex-col" onSubmit={onSubmit}>
-          <div className="flex-1 overflow-y-auto px-6 py-5">
-            <p className="text-sm text-muted">
+          <VStack gap={3} padding={4} className="flex-1 overflow-y-auto">
+            <Text color="secondary" size="sm">
               {editingId
                 ? "O endereço do link não muda. A primeira oferta é a principal."
                 : "A primeira oferta é a principal. As seguintes são backups."}
-            </p>
-            <label className="mt-4 flex flex-col gap-1.5 text-sm font-medium">
-              Nome
-              <input
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder="Sérum de vitamina C"
-                className={fieldClass}
-              />
-            </label>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <label className="flex flex-col gap-1.5 text-sm font-medium">
-                Preço
-                <input
-                  inputMode="decimal"
-                  value={price}
-                  onChange={(event) => setPrice(event.target.value)}
-                  placeholder="39,90"
-                  className={fieldClass}
-                />
-              </label>
-              <label className="flex flex-col gap-1.5 text-sm font-medium">
-                Comissão %
-                <input
-                  inputMode="numeric"
-                  value={commission}
-                  onChange={(event) => setCommission(event.target.value)}
-                  className={fieldClass}
-                />
-              </label>
+            </Text>
+            <Text color="secondary" size="sm">
+              Link encurtado (shope.ee) sem o código da loja e do item (…-i.loja.item) não entra na
+              conferência. O estoque fica o que você marcar.
+            </Text>
+            <TextInput
+              label="Nome"
+              value={title}
+              onChange={setTitle}
+              placeholder="Sérum de vitamina C"
+              width="100%"
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <TextInput label="Preço" value={price} onChange={setPrice} placeholder="39,90" width="100%" />
+              <TextInput label="Comissão %" value={commission} onChange={setCommission} width="100%" />
             </div>
             {offers.map((offer, index) => (
-              <div key={offer.key} className="mt-3 rounded-2xl bg-bg px-3 py-3">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-semibold tracking-wide text-muted uppercase">
+              <Card key={offer.key} padding={3}>
+                <VStack gap={2}>
+                  <Text size="sm" color="secondary" weight="semibold">
                     {index === 0 ? "Principal" : `Backup ${index}`}
-                  </p>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={offer.inStock}
-                    onClick={() => updateOffer(index, { inStock: !offer.inStock })}
-                    className={cn("min-h-11 text-sm", offer.inStock ? "text-fg" : "text-muted")}
-                  >
-                    {offer.inStock ? "Em estoque" : "Sem estoque"}
-                  </button>
-                </div>
-                <label className="mt-2 flex flex-col gap-1.5 text-sm font-medium">
-                  Loja
-                  <input
+                  </Text>
+                  <Switch
+                    label={offer.inStock ? "Em estoque" : "Sem estoque"}
+                    value={offer.inStock}
+                    onChange={(next) => updateOffer(index, { inStock: next })}
+                  />
+                  <TextInput
+                    label="Loja"
                     value={offer.shop}
-                    onChange={(event) => updateOffer(index, { shop: event.target.value })}
-                    className={fieldClass}
+                    onChange={(value) => updateOffer(index, { shop: value })}
+                    width="100%"
                   />
-                </label>
-                <label className="mt-2 flex flex-col gap-1.5 text-sm font-medium">
-                  Link https
-                  <input
+                  <TextInput
+                    label="Link https"
                     value={offer.url}
-                    onChange={(event) => updateOffer(index, { url: event.target.value })}
-                    inputMode="url"
-                    className={fieldClass}
+                    onChange={(value) => updateOffer(index, { url: value })}
+                    width="100%"
                   />
-                </label>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    className="min-h-11 px-1 text-sm font-medium text-fg disabled:opacity-40"
-                    disabled={index === 0}
-                    onClick={() => moveOffer(index, -1)}
-                  >
-                    Subir
-                  </button>
-                  <button
-                    type="button"
-                    className="min-h-11 px-1 text-sm font-medium text-fg disabled:opacity-40"
-                    disabled={index === offers.length - 1}
-                    onClick={() => moveOffer(index, 1)}
-                  >
-                    Descer
-                  </button>
-                  {offers.length > 1 ? (
-                    <button
-                      type="button"
-                      className="min-h-11 px-1 text-sm font-medium text-fg"
-                      onClick={() => setOffers((current) => current.filter((item) => item.key !== offer.key))}
-                    >
-                      Tirar
-                    </button>
-                  ) : null}
-                </div>
-              </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="ghost"
+                      label="Subir"
+                      isDisabled={index === 0}
+                      onClick={() => moveOffer(index, -1)}
+                    />
+                    <Button
+                      variant="ghost"
+                      label="Descer"
+                      isDisabled={index === offers.length - 1}
+                      onClick={() => moveOffer(index, 1)}
+                    />
+                    {offers.length > 1 ? (
+                      <Button
+                        variant="ghost"
+                        label="Tirar"
+                        onClick={() => setOffers((current) => current.filter((item) => item.key !== offer.key))}
+                      />
+                    ) : null}
+                  </div>
+                </VStack>
+              </Card>
             ))}
             {offers.length < 4 ? (
-              <button
-                type="button"
-                className="mt-2 min-h-11 text-sm font-medium text-fg"
-                onClick={() => setOffers((current) => [...current, offerRow()])}
-              >
-                Adicionar backup
-              </button>
+              <Button variant="ghost" label="Adicionar backup" onClick={() => setOffers((current) => [...current, offerRow()])} />
             ) : null}
-            {error ? <p className="mt-3 text-sm text-primary">{error}</p> : null}
-          </div>
-          <div className="flex justify-end gap-2 border-t border-border px-6 py-4">
-            <button
-              type="button"
-              className="min-h-11 px-3 text-sm font-medium text-muted hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              onClick={resetForm}
-            >
-              Cancelar
-            </button>
-            <Button type="submit" disabled={pending}>
-              {pending ? "Guardando…" : editingId ? "Salvar" : "Criar"}
-            </Button>
+            {error ? <Banner status="error" title={error} /> : null}
+          </VStack>
+          <div className="flex gap-2 border-t border-border px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:justify-end">
+            <Button variant="ghost" label="Cancelar" onClick={resetForm} />
+            <Button
+              type="submit"
+              isDisabled={pending}
+              isLoading={pending}
+              label={pending ? "Guardando…" : editingId ? "Salvar" : "Criar"}
+            />
           </div>
         </form>
       </SidePanel>
-    </div>
+    </VStack>
   );
 
   function updateOffer(index: number, patch: Partial<OfferDraft>) {
@@ -630,10 +666,7 @@ export function LinksPanel({
 
 export function NewLinkButton({ onClick }: { onClick: () => void }) {
   return (
-    <Button onClick={onClick}>
-      <Plus className="size-4" aria-hidden="true" />
-      Adicionar produto
-    </Button>
+    <Button icon={<Plus size={16} aria-hidden="true" />} label="Adicionar produto" onClick={onClick} />
   );
 }
 

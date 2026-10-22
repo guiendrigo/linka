@@ -1,5 +1,5 @@
 import { o as __toESM } from "../_runtime.mjs";
-import { Q as require_react } from "./@tanstack/react-router+[...].mjs";
+import { C as require_react } from "./@astryxdesign/core+[...].mjs";
 //#region node_modules/lucide-react/dist/esm/shared/src/utils.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 /**
@@ -133,26 +133,6 @@ var Link2 = createLucideIcon("link-2", [
 * This source code is licensed under the ISC license.
 * See the LICENSE file in the root directory of this source tree.
 */
-var Menu = createLucideIcon("menu", [
-	["path", {
-		d: "M4 12h16",
-		key: "1lakjw"
-	}],
-	["path", {
-		d: "M4 18h16",
-		key: "19g7jn"
-	}],
-	["path", {
-		d: "M4 6h16",
-		key: "1o0s65"
-	}]
-]);
-/**
-* @license lucide-react v0.510.0 - ISC
-*
-* This source code is licensed under the ISC license.
-* See the LICENSE file in the root directory of this source tree.
-*/
 var Plus = createLucideIcon("plus", [["path", {
 	d: "M5 12h14",
 	key: "1ays0h"
@@ -186,34 +166,6 @@ var Sparkles = createLucideIcon("sparkles", [
 	["path", {
 		d: "M5 18H3",
 		key: "zchphs"
-	}]
-]);
-/**
-* @license lucide-react v0.510.0 - ISC
-*
-* This source code is licensed under the ISC license.
-* See the LICENSE file in the root directory of this source tree.
-*/
-var Store = createLucideIcon("store", [
-	["path", {
-		d: "m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7",
-		key: "ztvudi"
-	}],
-	["path", {
-		d: "M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8",
-		key: "1b2hhj"
-	}],
-	["path", {
-		d: "M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4",
-		key: "2ebpfo"
-	}],
-	["path", {
-		d: "M2 7h20",
-		key: "1fcdvo"
-	}],
-	["path", {
-		d: "M22 7v3a2 2 0 0 1-2 2a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7",
-		key: "6c3vgh"
 	}]
 ]);
 /**
@@ -270,18 +222,5 @@ var TriangleAlert = createLucideIcon("triangle-alert", [
 		key: "p32p05"
 	}]
 ]);
-/**
-* @license lucide-react v0.510.0 - ISC
-*
-* This source code is licensed under the ISC license.
-* See the LICENSE file in the root directory of this source tree.
-*/
-var X = createLucideIcon("x", [["path", {
-	d: "M18 6 6 18",
-	key: "1bl5f8"
-}], ["path", {
-	d: "m6 6 12 12",
-	key: "d8bk6v"
-}]]);
 //#endregion
-export { Sparkles as a, Link2 as c, Store as i, Copy as l, TriangleAlert as n, Plus as o, Trash2 as r, Menu as s, X as t, Check as u };
+export { Link2 as a, Plus as i, Trash2 as n, Copy as o, Sparkles as r, Check as s, TriangleAlert as t };

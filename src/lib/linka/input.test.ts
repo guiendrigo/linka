@@ -25,6 +25,17 @@ test("recusa link que não é https", () => {
   );
 });
 
+test("aceita short link https da Shopee", () => {
+  const product = cleanProduct({
+    title: "Sérum",
+    price: "10,00",
+    commission: "12",
+    offers: [{ shop: "Loja", url: "https://shope.ee/abcDEF12", inStock: true }],
+  });
+  assert.equal(product.offers[0]?.url, "https://shope.ee/abcDEF12");
+  assert.equal(product.offers[0]?.inStock, true);
+});
+
 test("gera código curto a partir do nome", () => {
   const code = productCode("Sérum vitamina C");
   assert.match(code, /^serum-vitamina-c-[a-z0-9]{4}$/);

@@ -61,4 +61,15 @@ Aponte o DNS de volta para a Vercel. O arquivo SQLite na Magalu não escreve na 
 
 ## Backup
 
-Copie `/data/linka.sqlite` (e `-wal` / `-shm` se existirem) para fora da VM. Em validação, um `sqlite3 /data/linka.sqlite ".backup /backup/linka.sqlite"` no cron basta.
+Não deixe o volume Docker como única cópia: `docker compose down -v` apaga contas e produtos.
+
+Cron no host (não no processo Node), o mesmo de `migracao.md`:
+
+```sh
+docker compose -p linka exec -T app node /app/scripts/backup-sqlite.mjs
+mkdir -p /opt/linka-backups
+LATEST=$(docker compose -p linka exec -T app sh -c 'ls -1t /data/backups/linka-*.sqlite | head -1')
+docker cp "linka-app-1:${LATEST}" /opt/linka-backups/
+```
+
+Copie `/opt/linka-backups/` para fora da VM (outro disco, object storage). Cloudflare cache bypass continua `/r/*`, `/p/*` e `/api/*`.

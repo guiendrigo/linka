@@ -1,8 +1,12 @@
-import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
+import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
+import { Button } from "@astryxdesign/core/Button";
+import { Card } from "@astryxdesign/core/Card";
+import { Heading } from "@astryxdesign/core/Heading";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 import { AppShell } from "@/components/linka/shell";
 import { resolveCode } from "@/lib/linka/resolve.functions";
-import { formatBrl, redirectTarget, resolutionCopy, resolveSmartLink, withStock } from "@/lib/linka/resolve";
-import { buttonVariants } from "@/components/ui/button";
+import { formatBrl, redirectTarget, resolutionCopy, resolveSmartLink, visitorStock } from "@/lib/linka/resolve";
 
 export const Route = createFileRoute("/r/$code")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -12,7 +16,7 @@ export const Route = createFileRoute("/r/$code")({
   loader: async ({ params, deps }) => {
     const result = await resolveCode({ data: params.code });
     if (!result.found) throw notFound();
-    const link = withStock(result.link, deps.on);
+    const link = visitorStock(params.code, result.link, deps.on);
     const resolution = resolveSmartLink(link);
     const target = redirectTarget(resolution);
     if (target) {
@@ -46,21 +50,21 @@ function VisitorPage() {
 
   return (
     <AppShell account={false}>
-      <article className="mx-auto mt-16 w-full max-w-md">
-        <p className="text-sm font-semibold tracking-wide text-primary uppercase">{eyebrow}</p>
-        <h1 className="mt-3 text-4xl leading-none font-semibold tracking-tight">{link.title}</h1>
-        <p className="mt-3 text-muted">
-          <span className="tabular-nums">{formatBrl(link.priceCents)}</span>
-          <span> · </span>
-          <span className="tabular-nums">{link.commissionPct}%</span>
-        </p>
-        <div className="mt-8 rounded-3xl bg-surface p-2 shadow-ring">
-          <div className="rounded-2xl bg-bg px-4 py-5">
-            <p className="font-display text-3xl font-semibold">{copy.title}</p>
-            <p className="mt-3 text-sm leading-relaxed text-muted">{copy.body}</p>
-          </div>
-        </div>
-      </article>
+      <VStack gap={4} maxWidth={448} className="mx-auto mt-16 w-full">
+        <Text color="accent" weight="semibold">
+          {eyebrow}
+        </Text>
+        <Heading level={1} type="display-2">
+          {link.title}
+        </Heading>
+        <Text color="secondary" hasTabularNumbers>
+          {formatBrl(link.priceCents)}
+        </Text>
+        <Card padding={4}>
+          <Heading level={2}>{copy.title}</Heading>
+          <Text color="secondary">{copy.body}</Text>
+        </Card>
+      </VStack>
     </AppShell>
   );
 }
@@ -68,13 +72,13 @@ function VisitorPage() {
 function MissingLink() {
   return (
     <AppShell account={false}>
-      <div className="mx-auto mt-16 w-full max-w-md">
-        <h1 className="text-4xl leading-none font-semibold">Esse link não existe.</h1>
-        <p className="mt-4 text-muted">Esse endereço não aponta para nenhum produto.</p>
-        <Link to="/" className={`${buttonVariants({ variant: "primary" })} mt-8 w-full`}>
-          Ir para o início
-        </Link>
-      </div>
+      <VStack gap={4} maxWidth={448} className="mx-auto mt-16 w-full">
+        <Heading level={1} type="display-2">
+          Esse link não existe.
+        </Heading>
+        <Text color="secondary">Esse endereço não aponta para nenhum produto.</Text>
+        <Button href="/" variant="primary" label="Ir para o início" width="100%" />
+      </VStack>
     </AppShell>
   );
 }

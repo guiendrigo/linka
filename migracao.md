@@ -41,18 +41,19 @@ Fica `linka.guiendrigo.com` → Cloudflare → sua VM.
 
 4. **Caching → Cache Rules → Create rule** (obrigatório)
 
-   O smart link `/r/...` é 302 com `cache-control: no-store`. Se a Cloudflare cachear, o estoque fica errado.
+   O smart link `/r/...` é 302 com `cache-control: no-store`. A bio `/p/...` lista só o que ainda vende. Se a Cloudflare cachear, o estoque fica errado.
 
    - Rule name: `linka bypass app`
    - When incoming requests match:
      - Field: URI Path
      - Operator: starts with
      - Value: `/r/`
+     - Or URI Path starts with `/p/`
      - Or URI Path starts with `/api/`
    - Then: Cache eligibility → **Bypass cache**
    - Deploy
 
-Se a UI pedir um único path, faça duas rules: uma `/r/`, outra `/api/`.
+Se a UI pedir um único path, faça três rules: `/r/`, `/p/` e `/api/`.
 
 ---
 
@@ -229,21 +230,21 @@ Rollback: no Cloudflare, aponte o `A` de `linka` de volta para a Vercel (ou reco
 
 ## 8. Backup
 
-O arquivo vive no volume Docker `linka_linka-data` (nome: projeto `linka` + volume `linka-data`).
+O arquivo vive no volume Docker `linka_linka-data` (nome: projeto `linka` + volume `linka-data`). Recriar o container **não** apaga o volume. `docker compose down -v` **apaga** contas e produtos — essa não pode ser a única cópia.
+
+Cron **no host**, não no processo Node. Todos os dias:
 
 ```sh
-# achar o mount
-docker volume inspect linka_linka-data
+# 1. dump consistente dentro do volume
+docker compose -p linka exec -T app node /app/scripts/backup-sqlite.mjs
 
-# cópia a quente (validação)
-docker compose -p linka exec app node -e "
-const Database = require('better-sqlite3');
-const db = new Database('/data/linka.sqlite');
-db.backup('/data/linka-backup.sqlite').then(() => { db.close(); console.log('ok'); });
-"
+# 2. tirar o arquivo do volume (caminho no host fora do Compose)
+mkdir -p /opt/linka-backups
+LATEST=$(docker compose -p linka exec -T app sh -c 'ls -1t /data/backups/linka-*.sqlite | head -1')
+docker cp "linka-app-1:${LATEST}" /opt/linka-backups/
 ```
 
-Copie `/data/linka.sqlite`, e se existirem `linka.sqlite-wal` / `linka.sqlite-shm`, para fora da VM (outro disco, S3, etc.). Sem isso, um `docker compose down -v` apaga contas e produtos.
+O diretório `/opt/linka-backups/` ainda está na VM. Copie-o para outro disco ou object storage. Sem essa cópia fora da VM, um disco morto ou `down -v` some com o beta.
 
 ---
 
@@ -251,11 +252,11 @@ Copie `/data/linka.sqlite`, e se existirem `linka.sqlite-wal` / `linka.sqlite-sh
 
 - [x] `A` `linka` → IP Magalu, proxied
 - [ ] SSL Full (strict) + Always HTTPS
-- [ ] Cache bypass `/r/` e `/api/`
+- [ ] Cache bypass `/r/`, `/p/` e `/api/`
 - [ ] `.env` com `BETTER_AUTH_URL=https://linka.guiendrigo.com` e secret de 32+ bytes
 - [ ] Compose junta a rede `openreply_default` com alias `linka`
 - [ ] `docker exec openreply-caddy-1 wget -qO- http://linka:3000/api/health`
 - [ ] Site `linka.guiendrigo.com` no Caddyfile → `reverse_proxy linka:3000`
 - [ ] `https://linka.guiendrigo.com/api/health` de fora
 - [ ] Login e-mail/senha, produto, `/r/codigo`, restart
-- [ ] Backup do SQLite combinado
+- [ ] Backup do SQLite: cron no host + arquivo em `/opt/linka-backups/` + cópia fora da VM

@@ -1,4 +1,5 @@
-import type { Resolution, SmartLink } from "@/lib/linka/types";
+import { DEMO_CODE } from "./catalog.ts";
+import type { Resolution, SmartLink } from "./types.ts";
 
 /**
  * Escolhe o destino de um link inteligente.
@@ -29,6 +30,12 @@ export function withStock(link: SmartLink, on: string | undefined): SmartLink {
     ...link,
     offers: link.offers.map((offer) => ({ ...offer, inStock: allowed.has(offer.id) })),
   };
+}
+
+/** `?on=` só mexe no simulador. Produto gravado usa o estoque persistido. */
+export function visitorStock(code: string, link: SmartLink, on: string | undefined): SmartLink {
+  if (code !== DEMO_CODE) return link;
+  return withStock(link, on);
 }
 
 export function stockQuery(offers: { id: string; inStock: boolean }[]): string {

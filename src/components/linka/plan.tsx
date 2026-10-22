@@ -1,8 +1,12 @@
 import { Sparkles } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Banner } from "@astryxdesign/core/Banner";
+import { Button } from "@astryxdesign/core/Button";
+import { Card } from "@astryxdesign/core/Card";
+import { Heading } from "@astryxdesign/core/Heading";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 import { usePurchases } from "@/components/linka/use-purchases";
-import { cn } from "@/lib/cn";
 import type { PlanKind, PlanPackageView } from "@/lib/linka/purchases";
 
 export function PlanPanel() {
@@ -35,57 +39,56 @@ export function PlanPanel() {
   }
 
   return (
-    <div className="flex max-w-md flex-col gap-4">
-      <section className="rounded-3xl border border-dashed border-border bg-surface p-4">
+    <VStack gap={4} maxWidth={448}>
+      <Card padding={4}>
         <div className="flex items-start gap-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary">
-            <Sparkles className="size-5" aria-hidden="true" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="font-medium">Linka Pro</p>
-            <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted">
-              <span
-                className={cn("size-1.5 rounded-full", isPro ? "bg-primary" : "bg-muted")}
-                aria-hidden="true"
-              />
+          <Sparkles className="size-5 text-accent" aria-hidden="true" />
+          <VStack gap={1} className="min-w-0 flex-1">
+            <Text weight="medium">Linka Pro</Text>
+            <Text size="sm" color="secondary">
               {isPro ? "Assinatura ativa" : "Sem assinatura"}
-            </p>
-            <p className="mt-2 text-sm leading-relaxed text-muted">
+            </Text>
+            <Text size="sm" color="secondary">
               {isPro
                 ? "A conta tem o entitlement linka_pro. Dá para gerenciar a cobrança na central do cliente."
                 : "Anual ou mensal. O clique na oferta da RevenueCat abre o checkout na web."}
-            </p>
-          </div>
+            </Text>
+          </VStack>
         </div>
 
-        {error ? <p className="mt-4 text-sm text-primary">{error}</p> : null}
+        {error ? <Banner status="error" title={error} /> : null}
 
-        <div className="mt-4 flex flex-col gap-2">
+        <VStack gap={2} className="mt-4">
           {status === "error" ? (
-            <Button className="w-full" onClick={() => void run(refresh)} disabled={pending}>
-              Tentar de novo
-            </Button>
+            <Button
+              width="100%"
+              label="Tentar de novo"
+              isDisabled={pending}
+              onClick={() => void run(refresh)}
+            />
           ) : isPro ? (
             <Button
-              className="w-full"
+              width="100%"
+              label="Gerenciar assinatura"
+              isDisabled={!managementURL || pending}
               onClick={() => openCustomerCenter()}
-              disabled={!managementURL || pending}
-            >
-              Gerenciar assinatura
-            </Button>
+            />
           ) : hasPaywall ? (
-            <Button className="w-full" onClick={() => void run(presentPaywall)} disabled={pending}>
-              Ver ofertas
-            </Button>
+            <Button
+              width="100%"
+              label="Ver ofertas"
+              isDisabled={pending}
+              onClick={() => void run(presentPaywall)}
+            />
           ) : null}
           {isPro && !managementURL ? (
-            <p className="text-xs leading-relaxed text-muted">
-              A central do cliente aparece quando a RevenueCat devolve o endereço de gerenciamento
-              da assinatura web.
-            </p>
+            <Text size="sm" color="secondary">
+              A central do cliente aparece quando a RevenueCat devolve o endereço de gerenciamento da
+              assinatura web.
+            </Text>
           ) : null}
-        </div>
-      </section>
+        </VStack>
+      </Card>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <PlanCard
@@ -101,7 +104,7 @@ export function PlanPanel() {
           onPick={(kind) => run(() => purchasePlan(kind))}
         />
       </div>
-    </div>
+    </VStack>
   );
 }
 
@@ -120,18 +123,20 @@ function PlanCard({
   const cadence = kind === "anual" ? "por ano" : "por mês";
 
   return (
-    <section className="rounded-3xl border border-border bg-surface p-4">
-      <p className="text-sm font-medium">{pkg?.label ?? label}</p>
-      <p className="mt-2 font-display text-2xl tracking-tight">{pkg?.formattedPrice || "—"}</p>
-      <p className="mt-1 text-xs text-muted">{cadence}</p>
+    <Card padding={4}>
+      <Text weight="medium">{pkg?.label ?? label}</Text>
+      <Heading level={3}>{pkg?.formattedPrice || "—"}</Heading>
+      <Text size="sm" color="secondary">
+        {cadence}
+      </Text>
       <Button
-        className="mt-4 w-full"
-        variant={kind === "anual" ? "primary" : "ghost"}
-        disabled={disabled || !pkg}
+        className="mt-4"
+        width="100%"
+        variant={kind === "anual" ? "primary" : "secondary"}
+        isDisabled={disabled || !pkg}
+        label="Assinar"
         onClick={() => void onPick(kind)}
-      >
-        Assinar
-      </Button>
-    </section>
+      />
+    </Card>
   );
 }

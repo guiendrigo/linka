@@ -1,4 +1,7 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { Heading } from "@astryxdesign/core/Heading";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 import { AppShell } from "@/components/linka/shell";
 import { LoginPanel } from "@/components/linka/login-panel";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
@@ -15,19 +18,17 @@ function LoginPage() {
 
   return (
     <AppShell account={false}>
-      <div className="mx-auto mt-10 w-full max-w-sm">
-        <h1 className="text-4xl leading-none font-semibold tracking-tight">Entrar</h1>
-        <p className="mt-3 text-sm leading-relaxed text-muted">
-          A conta é sua. Quem abre o link inteligente não precisa entrar.
-        </p>
-        <div className="mt-8">
-          {isPending ? (
-            <div aria-hidden="true" className="h-64 animate-pulse rounded-3xl bg-surface" />
-          ) : (
-            <LoginPanel />
-          )}
-        </div>
-      </div>
+      <VStack gap={4} maxWidth={360} className="mx-auto mt-10 w-full">
+        <Heading level={1} type="display-2">
+          Entrar
+        </Heading>
+        <Text color="secondary">A conta é sua. Quem abre o link inteligente não precisa entrar.</Text>
+        {isPending ? (
+          <div aria-hidden="true" className="h-64 animate-pulse rounded-3xl bg-surface" />
+        ) : (
+          <LoginPanel />
+        )}
+      </VStack>
     </AppShell>
   );
 }

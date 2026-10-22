@@ -1,21 +1,16 @@
-import { Link } from "@tanstack/react-router";
+import { Button } from "@astryxdesign/core/Button";
 import { UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
-import { buttonVariants } from "@/components/ui/button";
 
 export function AccountSlot() {
   const { user, isPending } = useCurrentUserState();
 
   if (isPending) {
-    return <div aria-hidden="true" className="h-11 w-24 animate-pulse rounded-full bg-surface-2" />;
+    return <div aria-hidden="true" className="h-11 w-24 animate-pulse rounded-full bg-muted" />;
   }
 
   if (!user) {
-    return (
-      <Link to="/login" className={buttonVariants({ variant: "ghost" })}>
-        Entrar
-      </Link>
-    );
+    return <Button href="/login" variant="secondary" label="Entrar" />;
   }
 
   return (

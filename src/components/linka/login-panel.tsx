@@ -1,6 +1,10 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
-import { Button } from "@/components/ui/button";
+import { Banner } from "@astryxdesign/core/Banner";
+import { Button } from "@astryxdesign/core/Button";
+import { Text } from "@astryxdesign/core/Text";
+import { TextInput } from "@astryxdesign/core/TextInput";
+import { VStack } from "@astryxdesign/core/VStack";
 import {
   authClient,
   authEnabled,
@@ -83,88 +87,80 @@ export function LoginPanel() {
   }
 
   if (!authEnabled) {
-    return <p className="text-sm text-muted">Entrar está desligado.</p>;
+    return <Text color="secondary">Entrar está desligado.</Text>;
   }
 
   const showSocialDivider = socialProviders.length > 0 || googleLoginEnabled;
 
   return (
-    <div className="flex flex-col gap-3">
+    <VStack gap={3}>
       {googleLoginEnabled ? (
-        <Button variant="primary" className="w-full" disabled={pending} onClick={() => void onGoogle()}>
-          Continuar com Google
-        </Button>
+        <Button
+          variant="primary"
+          width="100%"
+          isDisabled={pending}
+          label="Continuar com Google"
+          onClick={() => void onGoogle()}
+        />
       ) : null}
 
       {socialProviders.map((provider) => (
         <Button
           key={provider.providerId}
-          variant={provider.idp === "google" ? "primary" : "ghost"}
-          className="w-full"
+          variant={provider.idp === "google" ? "primary" : "secondary"}
+          width="100%"
+          label={`Continuar com ${provider.label}`}
           onClick={() => signIn(provider.providerId, { callbackURL: "/" })}
-        >
-          Continuar com {provider.label}
-        </Button>
+        />
       ))}
 
       {showSocialDivider ? (
-        <div className="flex items-center gap-3 py-2 text-sm text-muted">
-          <span className="h-px flex-1 bg-border" />
+        <Text color="secondary" justify="center">
           ou com e-mail
-          <span className="h-px flex-1 bg-border" />
-        </div>
+        </Text>
       ) : null}
 
-      <form className="flex flex-col gap-3" onSubmit={onSubmit}>
-        {mode === "up" ? (
-          <label className="flex flex-col gap-1.5 text-sm font-medium">
-            Nome
-            <input
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              autoComplete="name"
-              className="min-h-11 rounded-2xl border border-border bg-bg px-4 text-base font-normal text-fg outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            />
-          </label>
-        ) : null}
-        <label className="flex flex-col gap-1.5 text-sm font-medium">
-          E-mail
-          <input
+      <form onSubmit={onSubmit}>
+        <VStack gap={3}>
+          {mode === "up" ? (
+            <TextInput label="Nome" value={name} onChange={setName} autoComplete="name" width="100%" />
+          ) : null}
+          <TextInput
+            label="E-mail"
             type="email"
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={setEmail}
             autoComplete="email"
-            inputMode="email"
-            className="min-h-11 rounded-2xl border border-border bg-bg px-4 text-base font-normal text-fg outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            width="100%"
           />
-        </label>
-        <label className="flex flex-col gap-1.5 text-sm font-medium">
-          Senha
-          <input
+          <TextInput
+            label="Senha"
             type="password"
             value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            onChange={setPassword}
             autoComplete={mode === "up" ? "new-password" : "current-password"}
-            className="min-h-11 rounded-2xl border border-border bg-bg px-4 text-base font-normal text-fg outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            width="100%"
           />
-        </label>
-        {error ? <p className="text-sm text-primary">{error}</p> : null}
-        <Button type="submit" className="w-full" disabled={pending}>
-          {pending ? "Entrando…" : mode === "up" ? "Criar conta" : "Entrar com e-mail"}
-        </Button>
+          {error ? <Banner status="error" title={error} /> : null}
+          <Button
+            type="submit"
+            width="100%"
+            isDisabled={pending}
+            isLoading={pending}
+            label={pending ? "Entrando…" : mode === "up" ? "Criar conta" : "Entrar com e-mail"}
+          />
+        </VStack>
       </form>
 
-      <button
-        type="button"
-        className="min-h-11 text-sm font-medium text-fg underline decoration-border underline-offset-4"
+      <Button
+        variant="ghost"
+        label={mode === "in" ? "Criar uma conta" : "Já tenho conta"}
         onClick={() => {
           setMode(mode === "in" ? "up" : "in");
           setError(null);
         }}
-      >
-        {mode === "in" ? "Criar uma conta" : "Já tenho conta"}
-      </button>
-    </div>
+      />
+    </VStack>
   );
 }
 

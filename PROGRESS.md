@@ -2,7 +2,7 @@
 
 App para afiliados da Shopee. A pessoa entra, guarda um produto com oferta principal e backups, e copia um único endereço. Quem clica cai na oferta que ainda tem estoque.
 
-O plano original pedia Next.js, Hono, Cloudflare Workers, Turso, Clerk, Stripe e Docker. Neste ambiente o app que roda de verdade é outro: TanStack Start, Better Auth e Postgres (Neon em produção, banco embutido no preview). A regra do link é a mesma. O que não dá para operar aqui não foi fingido.
+Produção é a Magalu (Docker, SQLite). O preview Grok usa banco embutido. A regra do link é a mesma. Sem a chave Affiliate da plataforma, o beta fecha no estoque marcado na mão.
 
 ## O que já funciona
 
@@ -14,10 +14,11 @@ O plano original pedia Next.js, Hono, Cloudflare Workers, Turso, Clerk, Stripe e
 - Cada pessoa só vê os próprios produtos. O link público não pede conta.
 - Quem entra ganha uma página de bio em `/p/codigo` (código opaco, não muda). Título, descrição e foto ficam no topo de Links; cada produto pode ficar visível ou oculto. O visitante vê título, preço e **Ver oferta**, sem comissão. Produto esgotado some da bio.
 
-### Estoque automático
+### Estoque (beta: na mão)
 
-- A conferência usa a Open API de afiliado da Shopee (`productOfferV2`) com App ID e segredo **da plataforma** (`SHOPEE_AFFILIATE_APP_ID` / `SHOPEE_AFFILIATE_SECRET`). O afiliado não cola chave.
-- Sem as duas env, o estoque marcado na mão continua. Com elas, a visita e o botão **Conferir estoque** consultam o catálogo.
+- Hoje o caminho do beta é o interruptor de cada oferta. Quem clica cai na primeira marcada em estoque, depois nos backups.
+- A conferência automática usa a Open API de afiliado da Shopee (`productOfferV2`) com App ID e segredo **da plataforma** (`SHOPEE_AFFILIATE_APP_ID` / `SHOPEE_AFFILIATE_SECRET`). O afiliado não cola chave.
+- Sem as duas env, o estoque marcado na mão continua e o Links avisa isso. Com elas, a visita e o botão **Conferir estoque** consultam o catálogo.
 - Se a URL tem o código do produto (`…-i.loja.item` ou `/product/loja/item`), a leitura vale 15 minutos e é compartilhada entre contas que apontam para o mesmo item.
 - Oferta ainda no catálogo: em estoque. Catálogo vazio: sem estoque, e o link cai no backup.
 - Limite da Shopee (`10030`) é aviso de indisponível agora, não de chave errada. Falha de acesso também não pede App ID ao usuário.
@@ -35,10 +36,16 @@ O plano original pedia Next.js, Hono, Cloudflare Workers, Turso, Clerk, Stripe e
 
 - `/r/codigo` responde com redirecionamento para a primeira oferta https em estoque.
 - Se a principal acabou, o clique vai para o primeiro backup disponível.
-- Se nenhuma tem estoque, a pessoa vê que a oferta esgotou, em vez de cair numa página morta.
+- Se nenhuma tem estoque, a pessoa vê que a oferta esgotou, em vez de cair numa página morta. Essa página mostra título e preço, sem a comissão.
 - Destino que não é https não recebe o clique.
+- `?on=` só mexe no simulador (`serum-c`). Produto gravado ignora o parâmetro.
+- `/api/r/codigo` usa a mesma conferência que `/r/codigo` e devolve a decisão em JSON, sem comissão nem segredo.
 - A resposta não fica gravada no celular: a próxima visita escolhe de novo.
-- `/api/r/codigo` devolve a mesma decisão em JSON, sem o segredo.
+
+### Operação Magalu
+
+- `GET /api/health` só responde ok se o SQLite (ou o banco da vez) responde `select 1`.
+- Backup: script no container (`scripts/backup-sqlite.mjs`) e cron no host copiando para fora do volume e da VM.
 
 ### Plano
 
@@ -73,7 +80,8 @@ O plano original pedia Next.js, Hono, Cloudflare Workers, Turso, Clerk, Stripe e
 
 ### Etapa 10 — polimento
 
-- Link encurtado (`shope.ee`) ainda não entra na conferência: falta o código da loja e do item.
+- Link encurtado (`shope.ee`) ainda não entra na conferência: falta o código da loja e do item. O formulário avisa; o estoque marcado vale.
+- A chave Affiliate da plataforma ainda não está no `.env` da Magalu: conferência automática espera essa aprovação.
 - Não há fila nem cron fora do processo do servidor. Quem não abre a conta depende da visita, no máximo a cada 15 minutos.
 - Textos de sair da conta continuam em inglês, porque esse controle é da plataforma.
 - A bio não tem handle escolhido, links extras (WhatsApp, Instagram, Pix) nem contagem de cliques.

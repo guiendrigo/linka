@@ -1,6 +1,6 @@
 import { o as __toESM, r as __exportAll } from "../_runtime.mjs";
 import { t as __exportAll$1 } from "./rolldown-runtime-8H4AJuhK.mjs";
-import { Q as require_react } from "../_libs/@tanstack/react-router+[...].mjs";
+import { C as require_react } from "../_libs/@astryxdesign/core+[...].mjs";
 import { Bt as isSafeUrlScheme, Ht as capitalizeFirstLetter, Ut as toKebabCase, zt as createFetch } from "../_libs/@better-auth/core+[...].mjs";
 import { d as isGoogleLoginEnabled, i as getBaseURL, n as GROK_PROVIDERS, p as isSocialLoginEnabled, r as PACKAGE_VERSION, t as GENERIC_OAUTH_ERROR_CODES } from "./providers-Bz-YPmt6.mjs";
 import { n as defu } from "../_libs/defu.mjs";
