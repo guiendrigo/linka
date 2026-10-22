@@ -1,32 +1,37 @@
 schema: spec-driven
 
-# Project context (optional)
-# Add only constraints that should guide OpenSpec artifacts and workflows.
-# Include constraints an agent cannot infer by reading the code.
-# Keep general project documentation and discoverable codebase facts out.
-# Example:
-#   context: |
-#     Designs and tasks must cover Windows, macOS, and Linux
-#     Write all artifacts in Spanish
+context: |
+  Production is the Magalu VM at /opt/linka: Docker Compose project `linka`,
+  SQLite file in volume `linka_linka-data`, Caddy in the OpenReply stack
+  (`/opt/openreply/Caddyfile`). Keep `deploy/Caddyfile` in sync with that file.
+  `npm run build` (Vercel/Nitro) is not the production gate — `docker compose
+  -p linka build` is. Do not run `npm run dev` on the VM while host `.env` sets
+  `SQLITE_PATH` to `/data/...`; that path exists only inside the container.
+  Schema changes need both `migrations/*.sql` (Postgres/PGLite) and
+  `migrations/sqlite/*.sql`. Never apply Postgres files to SQLite. Supply
+  timestamps from JavaScript; SQLite booleans are 0/1.
+  `npm test` is the Grok template suite and fails on purpose. Linka tests are
+  `npm run test:linka`. Archive completed OpenSpec changes so main specs
+  accumulate; do not pile complete changes under `openspec/changes/`.
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always state what is out of scope
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  proposal:
+    - Always state what is out of scope.
+    - If the change ships on Magalu, say so; do not treat Vercel preview as prod.
+  design:
+    - Schema work must name both migration trees and the next file numbers.
+  tasks:
+    - Each task states how to verify it.
+    - Changes that ship on Magalu include docker compose build/up and a public
+      URL smoke, not only `npm run typecheck` / `npm run build`.
 
-# Per-operation guidance (optional)
-# Add advisory guidance for how apply and archive work should be conducted.
-# This is separate from artifact rules above.
-# Example:
-#   operations:
-#     apply:
-#       guidance:
-#         - Keep test summaries concise
-#     archive:
-#       guidance:
-#         - Summarize the archive outcome before finishing
+operations:
+  apply:
+    guidance:
+      - Done means `npm run test:linka`, typecheck, and lint. Magalu-bound work
+        also needs `docker compose -p linka build` (or up --build).
+      - Do not use `npm test` as a verdict.
+  archive:
+    guidance:
+      - Sync delta specs into `openspec/specs/` before moving the change.
+      - Do not leave a complete change sitting in `openspec/changes/`.

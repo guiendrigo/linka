@@ -1,7 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { authMiddleware } from "@/lib/auth/middleware";
+import { cleanBioIdentity, parsePhotoBase64 } from "@/lib/linka/bio";
 import { cleanCredentials, cleanProduct } from "@/lib/linka/input";
-import type { StockReport, WorkspaceProduct, WorkspaceView } from "@/lib/linka/store.server";
+import type { BioPageView, StockReport, WorkspaceProduct, WorkspaceView } from "@/lib/linka/store.server";
 
 export const getWorkspace = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
@@ -107,6 +108,50 @@ export const toggleOfferStock = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { setOfferStock } = await import("@/lib/linka/store.server");
     await setOfferStock(context.userId, data.id, data.inStock);
+    return { ok: true as const };
+  });
+
+export const saveBioPage = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((data: unknown) => {
+    const body = asRecord(data);
+    return cleanBioIdentity({
+      title: typeof body.title === "string" ? body.title : "",
+      description: typeof body.description === "string" ? body.description : "",
+    });
+  })
+  .handler(async ({ context, data }): Promise<BioPageView> => {
+    const { saveBioIdentity } = await import("@/lib/linka/store.server");
+    return saveBioIdentity(context.userId, data);
+  });
+
+export const saveBioPagePhoto = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((data: unknown) => {
+    const body = asRecord(data);
+    const image = typeof body.image === "string" ? body.image : "";
+    parsePhotoBase64(image);
+    return image;
+  })
+  .handler(async ({ context, data }): Promise<BioPageView> => {
+    const parsed = parsePhotoBase64(data);
+    const { saveBioPhoto } = await import("@/lib/linka/store.server");
+    return saveBioPhoto(context.userId, parsed.mime, parsed.bytes);
+  });
+
+export const setBioVisible = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((data: unknown) => {
+    const body = asRecord(data);
+    if (typeof body.id !== "string" || !/^[0-9a-f-]{36}$/i.test(body.id)) {
+      throw new Error("Produto inválido.");
+    }
+    if (typeof body.visible !== "boolean") throw new Error("Visibilidade inválida.");
+    return { id: body.id, visible: body.visible };
+  })
+  .handler(async ({ context, data }) => {
+    const { setProductBioVisible } = await import("@/lib/linka/store.server");
+    await setProductBioVisible(context.userId, data.id, data.visible);
     return { ok: true as const };
   });
 

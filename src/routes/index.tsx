@@ -43,7 +43,7 @@ function LinksHome() {
     <ConsoleShell
       current="links"
       title="Links"
-      subtitle="Um endereço. A oferta com estoque."
+      subtitle="A página da bio e os links de cada produto."
       action={
         <NewLinkButton
           onClick={() => {
@@ -57,9 +57,10 @@ function LinksHome() {
         <WorkspacePending error={error} />
       ) : (
         <LinksPanel
+          bio={data.bio}
           products={data.products}
           canCheck={data.shopee.connected}
-          onChange={(products) => setData({ ...data, products })}
+          onChange={(patch) => setData({ ...data, ...patch })}
           composing={composing}
           composeNonce={composeNonce}
           onComposingChange={setComposing}

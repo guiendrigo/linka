@@ -1,5 +1,4 @@
 name: linka
-
 services:
   app:
     build: .

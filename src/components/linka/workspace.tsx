@@ -2,17 +2,21 @@ import { Check, Copy, Link2, Plus, Store, Trash2 } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { SidePanel } from "@/components/linka/side-panel";
+import { PHOTO_MAX_BYTES } from "@/lib/linka/bio";
 import { formatBrl, resolutionCopy, resolveSmartLink } from "@/lib/linka/resolve";
 import { centsToBrlInput, type OfferDraft } from "@/lib/linka/input";
 import { previewPathPrefix } from "@/lib/preview-path-prefix";
-import type { WorkspaceProduct, WorkspaceView } from "@/lib/linka/store.server";
+import type { BioPageView, WorkspaceProduct, WorkspaceView } from "@/lib/linka/store.server";
 import {
   addProduct,
   editProduct,
   refreshStock,
   removeProduct,
   removeShopeeCredentials,
+  saveBioPage,
+  saveBioPagePhoto,
   saveShopeeCredentials,
+  setBioVisible,
 } from "@/lib/linka/workspace.functions";
 import { cn } from "@/lib/cn";
 
@@ -180,7 +184,140 @@ export function ShopeePanel({
   );
 }
 
+function BioBlock({ bio, onChange }: { bio: BioPageView; onChange: (next: BioPageView) => void }) {
+  const [title, setTitle] = useState(bio.title);
+  const [description, setDescription] = useState(bio.description);
+  const [pending, setPending] = useState(false);
+  const [photoPending, setPhotoPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [photoNonce, setPhotoNonce] = useState(0);
+
+  useEffect(() => {
+    setTitle(bio.title);
+    setDescription(bio.description);
+  }, [bio.code, bio.title, bio.description]);
+
+  useEffect(() => {
+    if (!copied) return;
+    const id = window.setTimeout(() => setCopied(false), 1600);
+    return () => window.clearTimeout(id);
+  }, [copied]);
+
+  async function save(event: FormEvent) {
+    event.preventDefault();
+    setPending(true);
+    setError(null);
+    try {
+      const next = await saveBioPage({ data: { title, description } });
+      onChange(next);
+    } catch (err) {
+      setError(messageOf(err));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function copyAddress() {
+    const prefix = previewPathPrefix(window.location.hostname, window.location.pathname) ?? "";
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}${prefix}/p/${bio.code}`);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  async function onPhoto(file: File | undefined) {
+    if (!file) return;
+    setPhotoPending(true);
+    setError(null);
+    try {
+      if (file.size > PHOTO_MAX_BYTES) {
+        throw new Error("A foto precisa ter no máximo 1 MB.");
+      }
+      const image = await readFileAsDataUrl(file);
+      const next = await saveBioPagePhoto({ data: { image } });
+      setPhotoNonce(Date.now());
+      onChange(next);
+    } catch (err) {
+      setError(messageOf(err));
+    } finally {
+      setPhotoPending(false);
+    }
+  }
+
+  const prefix =
+    typeof window === "undefined"
+      ? ""
+      : (previewPathPrefix(window.location.hostname, window.location.pathname) ?? "");
+  const photoSrc = `${prefix}/p/${bio.code}/photo${photoNonce ? `?t=${photoNonce}` : ""}`;
+
+  return (
+    <section className="rounded-3xl border border-dashed border-border bg-surface p-4">
+      <div className="flex flex-wrap items-start gap-4">
+        <label className="grid size-20 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-full bg-bg shadow-ring">
+          {bio.hasPhoto ? (
+            <img src={photoSrc} alt="" className="size-20 rounded-full object-cover" />
+          ) : (
+            <span className="text-xs font-medium text-muted">Foto</span>
+          )}
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="sr-only"
+            disabled={photoPending}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              void onPhoto(file);
+            }}
+          />
+          <span className="sr-only">{photoPending ? "Enviando foto" : "Enviar foto de perfil"}</span>
+        </label>
+        <div className="min-w-0 flex-1">
+          <p className="font-medium">Página da bio</p>
+          <p className="mt-0.5 font-mono text-xs text-muted">/p/{bio.code}</p>
+          <Button variant="ghost" className="mt-2 min-h-9 px-3" onClick={copyAddress}>
+            {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+            {copied ? "Copiado" : "Copiar link"}
+          </Button>
+        </div>
+      </div>
+      <form className="mt-4 flex flex-col gap-3" onSubmit={save}>
+        <label className="flex flex-col gap-1.5 text-sm font-medium">
+          Título
+          <input value={title} onChange={(event) => setTitle(event.target.value)} className={fieldClass} />
+        </label>
+        <label className="flex flex-col gap-1.5 text-sm font-medium">
+          Descrição
+          <textarea
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            rows={3}
+            className={`${fieldClass} min-h-24 py-3`}
+          />
+        </label>
+        {error ? <p className="text-sm text-primary">{error}</p> : null}
+        <Button type="submit" className="self-start" disabled={pending || photoPending}>
+          {pending ? "Salvando…" : "Salvar página"}
+        </Button>
+      </form>
+    </section>
+  );
+}
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(new Error("Não deu para ler a foto."));
+    reader.readAsDataURL(file);
+  });
+}
+
 export function LinksPanel({
+  bio,
   products,
   canCheck,
   onChange,
@@ -188,9 +325,10 @@ export function LinksPanel({
   composeNonce,
   onComposingChange,
 }: {
+  bio: BioPageView;
   products: WorkspaceProduct[];
   canCheck: boolean;
-  onChange: (next: WorkspaceProduct[]) => void;
+  onChange: (next: { bio?: BioPageView; products?: WorkspaceProduct[] }) => void;
   composing: boolean;
   composeNonce: number;
   onComposingChange: (open: boolean) => void;
@@ -252,9 +390,11 @@ export function LinksPanel({
       const product = editingId
         ? await editProduct({ data: { id: editingId, ...payload } })
         : await addProduct({ data: payload });
-      onChange(
-        editingId ? products.map((item) => (item.id === product.id ? product : item)) : [product, ...products],
-      );
+      onChange({
+        products: editingId
+          ? products.map((item) => (item.id === product.id ? product : item))
+          : [product, ...products],
+      });
       resetForm();
     } catch (err) {
       setError(messageOf(err));
@@ -268,7 +408,7 @@ export function LinksPanel({
     setError(null);
     try {
       await removeProduct({ data: { id: productId } });
-      onChange(products.filter((product) => product.id !== productId));
+      onChange({ products: products.filter((product) => product.id !== productId) });
       setConfirmId(null);
     } catch (err) {
       setError(messageOf(err));
@@ -281,7 +421,7 @@ export function LinksPanel({
     setChecking(true);
     try {
       const result = await refreshStock({ data: { force } });
-      onChange(result.products);
+      onChange({ products: result.products });
       setCheckNote(result.detail);
       setCheckAlert(result.state === "rejected" || result.state === "unreachable");
     } catch (err) {
@@ -302,8 +442,25 @@ export function LinksPanel({
     }
   }
 
+  async function toggleVisible(product: WorkspaceProduct) {
+    const visible = !product.bioVisible;
+    setPending(true);
+    setError(null);
+    try {
+      await setBioVisible({ data: { id: product.id, visible } });
+      onChange({
+        products: products.map((item) => (item.id === product.id ? { ...item, bioVisible: visible } : item)),
+      });
+    } catch (err) {
+      setError(messageOf(err));
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
+      <BioBlock bio={bio} onChange={(next) => onChange({ bio: next })} />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className={cn("text-sm leading-snug", checkAlert ? "text-primary" : "text-muted")}>
           {checking
@@ -331,6 +488,7 @@ export function LinksPanel({
               <th className="px-4 py-3 font-medium">Preço</th>
               <th className="px-4 py-3 font-medium">Estoque</th>
               <th className="px-4 py-3 font-medium">Destino</th>
+              <th className="px-4 py-3 font-medium">Bio</th>
               <th className="px-4 py-3 font-medium">
                 <span className="sr-only">Ações</span>
               </th>
@@ -339,7 +497,7 @@ export function LinksPanel({
           <tbody>
             {products.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-16 text-center">
+                <td colSpan={7} className="px-4 py-16 text-center">
                   <Link2 className="mx-auto size-8 text-muted" aria-hidden="true" />
                   <p className="mt-3 text-sm text-muted">Nenhum produto ainda.</p>
                   <Button className="mt-4" onClick={() => onComposingChange(true)}>
@@ -389,6 +547,18 @@ export function LinksPanel({
                       </span>
                     </td>
                     <td className="max-w-40 truncate px-4 py-3 text-sm">{copy.title}</td>
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={product.bioVisible}
+                        className={cn("min-h-11 text-sm", product.bioVisible ? "text-fg" : "text-muted")}
+                        onClick={() => toggleVisible(product)}
+                        disabled={pending}
+                      >
+                        {product.bioVisible ? "Visível" : "Oculto"}
+                      </button>
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-1">
                         <Button variant="ghost" className="min-h-9 px-2" onClick={() => copyLink(product.code)}>

@@ -8,8 +8,10 @@ account.
 
 `PROGRESS.md` tracks product status and backlog in Portuguese. Its
 "O que ainda não existe" section is a scope boundary: natural-language search,
-payments, a dashboard, an installable PWA, and click counts are not implemented.
-Verify against code before claiming a feature exists.
+free-account limits, a dashboard, an installable PWA, and click counts are not
+implemented. RevenueCat billing (Anual/Mensal, entitlement `linka_pro`) lives
+on `/plano` behind `VITE_BILLING_ENABLED=true` (off by default). Verify against
+code before claiming a feature exists.
 
 ## Commands
 
@@ -21,8 +23,9 @@ Verify against code before claiming a feature exists.
 - `npm run lint` / `npm run format`.
 - `npm run build` — Vite build, then `db:migrate`. Without `DATABASE_URL` the
   migration step is skipped; with it, pending `migrations/*.sql` are applied.
-- `npm test` — script tests plus a fixed list of TS tests. Read "Test state"
-  below before using it as a verdict.
+- `npm test` — Grok template suite. Read "Test state" before using it as a
+  verdict; it is not green on purpose.
+- `npm run test:linka` — Linka's unit tests (`src/lib/linka/*.test.ts`).
 - Single test: `node --test scripts/<name>.test.mjs`, or
   `node --experimental-strip-types --test src/lib/linka/<name>.test.ts`.
 - `npm run check:auth` — with the dev server up; exit 0 = dev and the next build
@@ -37,6 +40,7 @@ Verify against code before claiming a feature exists.
 | `/` | Public pitch + simulator (`Bench`) and the signed-in workspace. |
 | `/login` | Google, X, and local email/password. |
 | `/r/$code` | Public. 302 to the first in-stock HTTPS offer; sold-out page otherwise. |
+| `/p/$code` | Public bio page (list + Ver oferta). `/p/$code/photo` serves the avatar. |
 | `/api/r/$code` | Public JSON version of the same resolution, without secrets. |
 | `/api/auth/$` | Better Auth handler. |
 | `/api/health` | Health check. |
@@ -143,7 +147,10 @@ Verify against code before claiming a feature exists.
 
 ## Verification
 
-- Before calling work done: `npm run typecheck`, `npm run lint`, `npm run build`.
+- Before calling work done: `npm run test:linka`, `npm run typecheck`,
+  `npm run lint`. Magalu-bound work also needs `docker compose -p linka build`
+  (or `up -d --build`); `npm run build` is the Vercel preset, not the VM image.
+- Before calling work done on Grok preview only: also `npm run build`.
 - Dev smoke: `node scripts/browser-smoke.mjs http://127.0.0.1:8080/ screenshots/<name>.png`
   (sandbox only).
 - Built-output smoke: `npm run preview:restart`, then
@@ -158,8 +165,8 @@ Verify against code before claiming a feature exists.
   starter (`VITE_AUTH_ENABLED=false`, no app migrations, no baked OG identity);
   Linka intentionally differs. Don't revert auth, migrations, or `site.json` to
   make them pass; update the expectations only when test hygiene is the task.
-- Linka's own unit tests are not included in `npm test` and do pass:
-  `node --experimental-strip-types --test src/lib/linka/input.test.ts src/lib/linka/resolve.test.ts src/lib/linka/shopee.test.ts`
+- Linka's own unit tests are `npm run test:linka` (not part of `npm test`) and
+  do pass.
 - `src/lib/app-data/app-data.test.ts` and
   `src/lib/auth/gate-identity.test.ts` need dependencies installed; they fail
   with module-not-found in a bare checkout.

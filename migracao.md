@@ -1,7 +1,7 @@
 # Subir a Linka na Magalu Cloud
 
 Domínio: `linka.guiendrigo.com` (zona na Cloudflare).  
-App: Docker Compose na VM. Caddy na frente, na 80/443. SQLite no volume. Login só e-mail/senha.
+App: Docker Compose na VM. Caddy na frente, na 80/443. SQLite no volume. Login e-mail/senha e, com chaves Google, “Continuar com Google”.
 
 O banco Neon da Vercel **não** vem junto. Produção nesta VM começa vazia.
 
@@ -107,6 +107,8 @@ Edite `.env`:
 BETTER_AUTH_URL=https://linka.guiendrigo.com
 BETTER_AUTH_SECRET=
 SQLITE_PATH=/data/linka.sqlite
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
 ```
 
 Gere o segredo e cole em `BETTER_AUTH_SECRET`:
@@ -115,22 +117,30 @@ Gere o segredo e cole em `BETTER_AUTH_SECRET`:
 openssl rand -hex 32
 ```
 
-Não defina `DATABASE_URL`. Não defina `GROK_AUTH_*`. Login é e-mail e senha.
+Não defina `DATABASE_URL`. Não defina `GROK_AUTH_*`. Não coloque o secret da Google em `VITE_*`.
+
+Google (opcional): client OAuth **Web** na Google Cloud, origem `https://linka.guiendrigo.com`, redirect `https://linka.guiendrigo.com/api/auth/callback/google`. A imagem já leva `VITE_GOOGLE_LOGIN=true`; depois das chaves, `docker compose -p linka up -d --build`. Sem as chaves o `/login` fica só e-mail/senha.
 
 ---
 
-## 4. Compose: Caddy no host precisa alcançar a 3000
+## 4. Compose: o Caddy precisa alcançar a 3000
 
-O `docker-compose.yml` só faz `expose: "3000"` (rede Docker). Caddy no host não entra aí. Publique a 3000 **só em loopback**.
+Nesta VM o Caddy **não** está no systemd: é o container `openreply-caddy-1`, na rede `openreply_default`, com o arquivo vivo em `/opt/openreply/Caddyfile`. Ele já ocupa 80 e 443. A Linka entra nessa rede com o alias `linka` (veja `docker-compose.yml`). Não publique 80 nem 443 neste compose.
 
-No serviço `app`, acrescente:
+Trecho que o compose da Linka já traz:
 
 ```yaml
-    ports:
-      - "127.0.0.1:3000:3000"
-```
+    networks:
+      default: {}
+      proxy:
+        aliases:
+          - linka
 
-Não publique `80:80` nem `443:443` neste compose. Isso é do Caddy.
+networks:
+  proxy:
+    external: true
+    name: openreply_default
+```
 
 Build e sobe:
 
@@ -138,7 +148,7 @@ Build e sobe:
 cd /opt/linka
 docker compose -p linka up -d --build
 docker compose -p linka ps
-curl -sS http://127.0.0.1:3000/api/health
+docker exec openreply-caddy-1 wget -qO- http://linka:3000/api/health
 ```
 
 Esperado: `{"ok":true,"service":"linka","stage":"foundation"}`.
@@ -149,24 +159,7 @@ A Magalu costuma ser `linux/amd64`. Se o build local foi no Mac ARM, **compile n
 
 ## 5. Caddyfile
 
-Acrescente um site. Não apague os outros.
-
-### Com Origin Certificate (opção A)
-
-```caddy
-linka.guiendrigo.com {
-	tls /etc/caddy/certs/linka.pem /etc/caddy/certs/linka.key
-
-	encode gzip
-	header {
-		-Server
-	}
-
-	reverse_proxy 127.0.0.1:3000
-}
-```
-
-### Com Let's Encrypt (opção B, nuvem cinza na emissão)
+Acrescente o bloco de `deploy/Caddyfile` em `/opt/openreply/Caddyfile`. Não apague os outros sites.
 
 ```caddy
 linka.guiendrigo.com {
@@ -175,16 +168,20 @@ linka.guiendrigo.com {
 		-Server
 	}
 
-	reverse_proxy 127.0.0.1:3000
+	@nocache path /r/* /api/*
+	header @nocache Cache-Control "no-store"
+
+	reverse_proxy linka:3000
 }
 ```
+
+O Caddy desta VM emite Let's Encrypt sozinho (igual ao `openreply.guiendrigo.com`). Se a nuvem laranja da Cloudflare impedir o HTTP-01 na primeira emissão, use a opção A (origin cert) ou a B (nuvem cinza só na emissão) da seção 2, com `tls` apontando para os arquivos.
 
 Validar e recarregar:
 
 ```sh
-sudo caddy validate --config /etc/caddy/Caddyfile
-sudo systemctl reload caddy
-# ou: sudo caddy reload --config /etc/caddy/Caddyfile
+docker exec openreply-caddy-1 caddy validate --config /etc/caddy/Caddyfile
+docker exec openreply-caddy-1 caddy reload --config /etc/caddy/Caddyfile
 ```
 
 ---
@@ -256,9 +253,9 @@ Copie `/data/linka.sqlite`, e se existirem `linka.sqlite-wal` / `linka.sqlite-sh
 - [ ] SSL Full (strict) + Always HTTPS
 - [ ] Cache bypass `/r/` e `/api/`
 - [ ] `.env` com `BETTER_AUTH_URL=https://linka.guiendrigo.com` e secret de 32+ bytes
-- [ ] Compose publica `127.0.0.1:3000:3000`
-- [ ] `curl http://127.0.0.1:3000/api/health` na VM
-- [ ] Site `linka.guiendrigo.com` no Caddyfile → `reverse_proxy 127.0.0.1:3000`
+- [ ] Compose junta a rede `openreply_default` com alias `linka`
+- [ ] `docker exec openreply-caddy-1 wget -qO- http://linka:3000/api/health`
+- [ ] Site `linka.guiendrigo.com` no Caddyfile → `reverse_proxy linka:3000`
 - [ ] `https://linka.guiendrigo.com/api/health` de fora
 - [ ] Login e-mail/senha, produto, `/r/codigo`, restart
 - [ ] Backup do SQLite combinado

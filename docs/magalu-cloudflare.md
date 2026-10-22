@@ -9,8 +9,9 @@ Copie `.env.example` para `.env` na VM. Obrigatórias:
 - `BETTER_AUTH_URL` — origem HTTPS pública, por exemplo `https://linka.seudominio.com`. Better Auth usa isso em callback, CSRF (`trustedOrigins`) e cookies.
 - `BETTER_AUTH_SECRET` — segredo aleatório com 32 bytes ou mais.
 - `SQLITE_PATH` — no Compose já vai ` /data/linka.sqlite` no volume.
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — OAuth Web da Google Cloud, para “Continuar com Google”. O secret fica só no servidor; **não** use `VITE_*` para ele. Redirect: `https://linka.guiendrigo.com/api/auth/callback/google`. A imagem Magalu já define `VITE_GOOGLE_LOGIN=true` no build — depois de preencher as chaves, `docker compose -p linka up -d --build`.
 
-Não defina `DATABASE_URL` nesta VM (isso seleciona Neon). Não defina `GROK_AUTH_CLIENT_ID` / `GROK_AUTH_CLIENT_SECRET` até ter OAuth próprio; sem eles o login é só e-mail e senha.
+Não defina `DATABASE_URL` nesta VM (isso seleciona Neon). Não defina `GROK_AUTH_CLIENT_ID` / `GROK_AUTH_CLIENT_SECRET` até ter OAuth próprio do broker; sem eles o login é e-mail/senha e, se as chaves Google existirem, Google nativo.
 
 ## Hostname próprio
 
@@ -26,7 +27,7 @@ O serviço `app` escuta na rede Docker na porta **3000** e **não** publica 80 n
 
 ### Já existe nginx / Caddy / Traefik
 
-Aponte o vhost HTTPS para `http://linka-app-1:3000` (ou o nome do container na rede compartilhada). Deixe o serviço `cloudflared` comentado.
+Nesta VM o Caddy é o container `openreply-caddy-1`. O compose da Linka entra na rede `openreply_default` com alias `linka`. Cole o bloco de `deploy/Caddyfile` em `/opt/openreply/Caddyfile` (`reverse_proxy linka:3000`) e recarregue o Caddy. Deixe o serviço `cloudflared` comentado.
 
 ### Não existe proxy
 
@@ -37,12 +38,13 @@ Aponte o vhost HTTPS para `http://linka-app-1:3000` (ou o nome do container na r
 
 ## Cache
 
-`/r/$code` responde 302 com `cache-control: no-store` para reavaliar estoque. Na Cloudflare, **desligue o cache** para:
+`/r/$code` responde 302 com `cache-control: no-store` para reavaliar estoque. `/p/$code` lista só o que ainda vende, então também não pode ficar em cache. Na Cloudflare, **desligue o cache** para:
 
 - `/r/*`
+- `/p/*`
 - `/api/*`
 
-Cache Rule (exemplo): se URI Path começa com `/r/` ou `/api/` → Cache eligibility Bypass.
+Cache Rule (exemplo): se URI Path começa com `/r/`, `/p/` ou `/api/` → Cache eligibility Bypass.
 
 ## Cutover
 

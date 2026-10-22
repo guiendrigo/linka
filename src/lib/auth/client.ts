@@ -1,7 +1,7 @@
 import { genericOAuthClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import { runPreSignInSignOut, runSignOut } from "../../../scripts/sign-out-plan.mjs";
-import { isSocialLoginEnabled } from "./auth-config";
+import { isGoogleLoginEnabled, isSocialLoginEnabled } from "./auth-config";
 import { GROK_PROVIDERS } from "./providers";
 
 /**
@@ -44,6 +44,9 @@ export { GROK_PROVIDERS };
 export const socialLoginEnabled = isSocialLoginEnabled(
   import.meta.env.VITE_SOCIAL_LOGIN,
 );
+
+export const googleLoginEnabled =
+  isGoogleLoginEnabled(import.meta.env.VITE_GOOGLE_LOGIN) && !socialLoginEnabled;
 
 export const socialProviders = socialLoginEnabled ? GROK_PROVIDERS : [];
 

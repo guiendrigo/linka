@@ -1,4 +1,13 @@
 import { getSql } from "@/lib/db";
+import {
+  BIO_CODE_RE,
+  bioCode,
+  bioListItems,
+  cleanBioIdentity,
+  type BioIdentity,
+  type BioListItem,
+  type PhotoMime,
+} from "@/lib/linka/bio";
 import { productCode, type CleanProduct } from "@/lib/linka/input";
 import { parseShopeeItem, STOCK_FRESH_MS } from "@/lib/linka/shopee";
 import type { SmartLink } from "@/lib/linka/types";
@@ -17,13 +26,33 @@ export type WorkspaceProduct = {
   title: string;
   priceCents: number;
   commissionPct: number;
+  bioVisible: boolean;
   offers: WorkspaceOffer[];
+};
+
+export type BioPageView = {
+  code: string;
+  title: string;
+  description: string;
+  hasPhoto: boolean;
 };
 
 export type WorkspaceView = {
   shopee: { connected: false } | { connected: true; appId: string };
+  bio: BioPageView;
   products: WorkspaceProduct[];
 };
+
+export type PublicBioPage = {
+  found: true;
+  code: string;
+  title: string;
+  description: string;
+  hasPhoto: boolean;
+  products: BioListItem[];
+};
+
+export type MissingBioPage = { found: false };
 
 export type StockReport = {
   state: "fresh" | "updated" | "skipped" | "need_credentials" | "rejected" | "unreachable";
@@ -38,6 +67,7 @@ type ProductRow = {
   title: string;
   price_cents: number | string;
   commission_pct: number | string;
+  bio_visible: unknown;
   offer_id: string | null;
   shop: string | null;
   url: string | null;
@@ -78,6 +108,7 @@ function groupProducts(rows: ProductRow[]): WorkspaceProduct[] {
         title: row.title,
         priceCents: asNumber(row.price_cents),
         commissionPct: asNumber(row.commission_pct),
+        bioVisible: row.bio_visible == null ? true : asBool(row.bio_visible),
         offers: [],
       };
       products.push(product);
@@ -96,7 +127,7 @@ function groupProducts(rows: ProductRow[]): WorkspaceProduct[] {
 }
 
 const productSelect = `
-  select p.id, p.code, p.title, p.price_cents, p.commission_pct,
+  select p.id, p.code, p.title, p.price_cents, p.commission_pct, p.bio_visible,
          o.id as offer_id, o.shop, o.url, o.in_stock, o.position, o.checked_at
   from products p
   left join offers o on o.product_id = p.id
@@ -114,8 +145,162 @@ export async function loadWorkspace(userId: string): Promise<WorkspaceView> {
   const credential = creds[0];
   return {
     shopee: credential ? { connected: true, appId: credential.app_id } : { connected: false },
+    bio: await ensureBioPage(userId),
     products: groupProducts(listed),
   };
+}
+
+type BioRow = {
+  code: string;
+  title: string;
+  description: string;
+  photo_mime: string | null;
+};
+
+function toBioView(row: BioRow): BioPageView {
+  return {
+    code: row.code,
+    title: row.title,
+    description: row.description ?? "",
+    hasPhoto: Boolean(row.photo_mime),
+  };
+}
+
+async function readBioPage(userId: string): Promise<BioPageView | null> {
+  const sql = await getSql();
+  const rows = await sql<BioRow>`
+    select code, title, description, photo_mime from bio_pages where user_id = ${userId}
+  `;
+  const row = rows[0];
+  return row ? toBioView(row) : null;
+}
+
+async function ensureBioPage(userId: string): Promise<BioPageView> {
+  const existing = await readBioPage(userId);
+  if (existing) return existing;
+  const sql = await getSql();
+  const names = await sql<{ name: string }>`select name from "user" where id = ${userId}`;
+  let title = "Minha página";
+  try {
+    title = cleanBioIdentity({ title: names[0]?.name?.trim() || "Minha página", description: "" }).title;
+  } catch {
+    title = "Minha página";
+  }
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const code = bioCode();
+    const createdAt = new Date().toISOString();
+    try {
+      await sql`
+        insert into bio_pages (user_id, code, title, description, created_at)
+        values (${userId}, ${code}, ${title}, ${""}, ${createdAt})
+      `;
+      return { code, title, description: "", hasPhoto: false };
+    } catch {
+      const raced = await readBioPage(userId);
+      if (raced) return raced;
+    }
+  }
+  throw new Error("Não deu para criar a página da bio.");
+}
+
+export async function saveBioIdentity(userId: string, identity: BioIdentity): Promise<BioPageView> {
+  const sql = await getSql();
+  await ensureBioPage(userId);
+  await sql`
+    update bio_pages
+    set title = ${identity.title}, description = ${identity.description}
+    where user_id = ${userId}
+  `;
+  const saved = await readBioPage(userId);
+  if (!saved) throw new Error("Não deu para salvar a página.");
+  return saved;
+}
+
+export async function saveBioPhoto(userId: string, mime: PhotoMime, bytes: Uint8Array): Promise<BioPageView> {
+  const sql = await getSql();
+  await ensureBioPage(userId);
+  await sql.query(`update bio_pages set photo_mime = $1, photo_bytes = $2 where user_id = $3`, [
+    mime,
+    Buffer.from(bytes),
+    userId,
+  ]);
+  const saved = await readBioPage(userId);
+  if (!saved) throw new Error("Não deu para guardar a foto.");
+  return { ...saved, hasPhoto: true };
+}
+
+export async function setProductBioVisible(userId: string, productId: string, visible: boolean): Promise<void> {
+  const sql = await getSql();
+  const updated = await sql<{ id: string }>`
+    update products set bio_visible = ${visible} where id = ${productId} and user_id = ${userId} returning id
+  `;
+  if (updated.length === 0) throw new Error("Produto não encontrado.");
+}
+
+export async function loadPublicBio(code: string): Promise<PublicBioPage | MissingBioPage> {
+  if (!BIO_CODE_RE.test(code)) return { found: false };
+  const sql = await getSql();
+  const pages = await sql<{ user_id: string } & BioRow>`
+    select user_id, code, title, description, photo_mime from bio_pages where code = ${code}
+  `;
+  const page = pages[0];
+  if (!page) return { found: false };
+  try {
+    await checkStock(page.user_id, { force: false });
+  } catch {
+    // A visita usa o último estoque conhecido se a Shopee não responder.
+  }
+  const listed = await sql.query<ProductRow>(
+    `${productSelect} where p.user_id = $1 order by p.created_at desc, o.position asc`,
+    [page.user_id],
+  );
+  return {
+    found: true,
+    code: page.code,
+    title: page.title,
+    description: page.description ?? "",
+    hasPhoto: Boolean(page.photo_mime),
+    products: bioListItems(
+      groupProducts(listed).map((product) => ({
+        code: product.code,
+        title: product.title,
+        priceCents: product.priceCents,
+        bioVisible: product.bioVisible,
+        offers: product.offers,
+      })),
+    ),
+  };
+}
+
+export async function loadBioPhoto(code: string): Promise<{ mime: string; bytes: Uint8Array } | null> {
+  if (!BIO_CODE_RE.test(code)) return null;
+  const sql = await getSql();
+  const rows = await sql.query<{ photo_mime: string | null; photo_bytes: unknown }>(
+    `select photo_mime, photo_bytes from bio_pages where code = $1`,
+    [code],
+  );
+  const row = rows[0];
+  if (!row?.photo_mime) return null;
+  const bytes = asBytes(row.photo_bytes);
+  if (!bytes || bytes.byteLength === 0) return null;
+  return { mime: row.photo_mime, bytes };
+}
+
+function asBytes(value: unknown): Uint8Array | null {
+  if (value == null) return null;
+  if (value instanceof Uint8Array) return value;
+  if (ArrayBuffer.isView(value)) {
+    const view = value as ArrayBufferView;
+    return new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+  }
+  if (Array.isArray(value) && value.every((item) => typeof item === "number")) {
+    return Uint8Array.from(value);
+  }
+  if (typeof value === "string" && value.length > 0) {
+    if (value.startsWith("\\x")) return new Uint8Array(Buffer.from(value.slice(2), "hex"));
+    return new Uint8Array(Buffer.from(value, "base64"));
+  }
+  return null;
 }
 
 export async function saveCredentials(userId: string, appId: string, secret: string): Promise<void> {

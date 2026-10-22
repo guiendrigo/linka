@@ -38,6 +38,8 @@ import { Pool } from "pg";
 import { ensureDbReady, getPglite, getSqliteDatabase } from "../db";
 import {
   isBrokerConfigured,
+  isGoogleConfigured,
+  nativeGoogleSocialProviders,
   resolveAuthConfigured,
   trustedOriginsFor,
 } from "./auth-config";
@@ -80,6 +82,20 @@ const grokIssuer = env("GROK_AUTH_ISSUER") ?? GROK_ISSUER_DEFAULT;
 const grokClientId = env("GROK_AUTH_CLIENT_ID");
 const grokClientSecret = env("GROK_AUTH_CLIENT_SECRET");
 const brokerConfigured = isBrokerConfigured({
+  GROK_AUTH_CLIENT_ID: grokClientId,
+  GROK_AUTH_CLIENT_SECRET: grokClientSecret,
+});
+const googleClientId = env("GOOGLE_CLIENT_ID");
+const googleClientSecret = env("GOOGLE_CLIENT_SECRET");
+const googleConfigured = isGoogleConfigured({
+  GOOGLE_CLIENT_ID: googleClientId,
+  GOOGLE_CLIENT_SECRET: googleClientSecret,
+  GROK_AUTH_CLIENT_ID: grokClientId,
+  GROK_AUTH_CLIENT_SECRET: grokClientSecret,
+});
+const googleSocialProviders = nativeGoogleSocialProviders({
+  GOOGLE_CLIENT_ID: googleClientId,
+  GOOGLE_CLIENT_SECRET: googleClientSecret,
   GROK_AUTH_CLIENT_ID: grokClientId,
   GROK_AUTH_CLIENT_SECRET: grokClientSecret,
 });
@@ -202,6 +218,7 @@ export const auth = betterAuth({
       trustedProviders: [
         ...GROK_PROVIDERS.map((p) => p.providerId),
         GATE_PROVIDER_ID,
+        ...(googleConfigured ? ["google"] : []),
       ],
       // X's synthetic email is never "verified", so don't gate linking on the
       // local user's email-verified state.
@@ -217,6 +234,9 @@ export const auth = betterAuth({
 
   // Local email/password — toggled only via `./email-password` (not a plugin).
   ...(emailAndPasswordEnabled ? { emailAndPassword: { enabled: true } } : {}),
+
+  // Magalu native Google — omitted when the Grok broker is configured.
+  ...(googleSocialProviders ? { socialProviders: googleSocialProviders } : {}),
 
   // `__Host-` prefixed cookies: the browser REFUSES any same-named cookie that
   // carries a `Domain` attribute, so a sibling `*.grok.me` app cannot "toss" a

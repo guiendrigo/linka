@@ -1,7 +1,13 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { authClient, authEnabled, signIn, socialProviders } from "@/lib/auth/client";
+import {
+  authClient,
+  authEnabled,
+  googleLoginEnabled,
+  signIn,
+  socialProviders,
+} from "@/lib/auth/client";
 
 type Mode = "in" | "up";
 
@@ -58,12 +64,38 @@ export function LoginPanel() {
     }
   }
 
+  async function onGoogle() {
+    setError(null);
+    setPending(true);
+    try {
+      const result = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/",
+      });
+      if (result.error) {
+        setError("Não deu para entrar. Tente de novo.");
+        setPending(false);
+      }
+    } catch {
+      setError("Não deu para entrar. Tente de novo.");
+      setPending(false);
+    }
+  }
+
   if (!authEnabled) {
     return <p className="text-sm text-muted">Entrar está desligado.</p>;
   }
 
+  const showSocialDivider = socialProviders.length > 0 || googleLoginEnabled;
+
   return (
     <div className="flex flex-col gap-3">
+      {googleLoginEnabled ? (
+        <Button variant="primary" className="w-full" disabled={pending} onClick={() => void onGoogle()}>
+          Continuar com Google
+        </Button>
+      ) : null}
+
       {socialProviders.map((provider) => (
         <Button
           key={provider.providerId}
@@ -75,7 +107,7 @@ export function LoginPanel() {
         </Button>
       ))}
 
-      {socialProviders.length > 0 ? (
+      {showSocialDivider ? (
         <div className="flex items-center gap-3 py-2 text-sm text-muted">
           <span className="h-px flex-1 bg-border" />
           ou com e-mail

@@ -11,11 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as PlanoRouteImport } from './routes/plano'
 import { Route as ShopeeRouteImport } from './routes/shopee'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as RCodeRouteImport } from './routes/r/$code'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiRCodeRouteImport } from './routes/api/r/$code'
+import { Route as PCodeIndexRouteImport } from './routes/p/$code/index'
+import { Route as PCodePhotoRouteImport } from './routes/p/$code/photo'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -25,6 +28,11 @@ const IndexRoute = IndexRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanoRoute = PlanoRouteImport.update({
+  id: '/plano',
+  path: '/plano',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShopeeRoute = ShopeeRouteImport.update({
@@ -52,73 +60,104 @@ const ApiRCodeRoute = ApiRCodeRouteImport.update({
   path: '/api/r/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PCodeIndexRoute = PCodeIndexRouteImport.update({
+  id: '/p/$code/',
+  path: '/p/$code/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PCodePhotoRoute = PCodePhotoRouteImport.update({
+  id: '/p/$code/photo',
+  path: '/p/$code/photo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/plano': typeof PlanoRoute
   '/shopee': typeof ShopeeRoute
   '/api/health': typeof ApiHealthRoute
   '/r/$code': typeof RCodeRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/r/$code': typeof ApiRCodeRoute
+  '/p/$code/photo': typeof PCodePhotoRoute
+  '/p/$code/': typeof PCodeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/plano': typeof PlanoRoute
   '/shopee': typeof ShopeeRoute
   '/api/health': typeof ApiHealthRoute
   '/r/$code': typeof RCodeRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/r/$code': typeof ApiRCodeRoute
+  '/p/$code/photo': typeof PCodePhotoRoute
+  '/p/$code': typeof PCodeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/plano': typeof PlanoRoute
   '/shopee': typeof ShopeeRoute
   '/api/health': typeof ApiHealthRoute
   '/r/$code': typeof RCodeRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/r/$code': typeof ApiRCodeRoute
+  '/p/$code/photo': typeof PCodePhotoRoute
+  '/p/$code/': typeof PCodeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/login'
+    | '/plano'
     | '/shopee'
     | '/api/health'
     | '/r/$code'
     | '/api/auth/$'
     | '/api/r/$code'
+    | '/p/$code/photo'
+    | '/p/$code/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
+    | '/plano'
     | '/shopee'
     | '/api/health'
     | '/r/$code'
     | '/api/auth/$'
     | '/api/r/$code'
+    | '/p/$code/photo'
+    | '/p/$code'
   id:
     | '__root__'
     | '/'
     | '/login'
+    | '/plano'
     | '/shopee'
     | '/api/health'
     | '/r/$code'
     | '/api/auth/$'
     | '/api/r/$code'
+    | '/p/$code/photo'
+    | '/p/$code/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  PlanoRoute: typeof PlanoRoute
   ShopeeRoute: typeof ShopeeRoute
   ApiHealthRoute: typeof ApiHealthRoute
   RCodeRoute: typeof RCodeRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiRCodeRoute: typeof ApiRCodeRoute
+  PCodePhotoRoute: typeof PCodePhotoRoute
+  PCodeIndexRoute: typeof PCodeIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -135,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plano': {
+      id: '/plano'
+      path: '/plano'
+      fullPath: '/plano'
+      preLoaderRoute: typeof PlanoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shopee': {
@@ -172,17 +218,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/p/$code/': {
+      id: '/p/$code/'
+      path: '/p/$code'
+      fullPath: '/p/$code/'
+      preLoaderRoute: typeof PCodeIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/$code/photo': {
+      id: '/p/$code/photo'
+      path: '/p/$code/photo'
+      fullPath: '/p/$code/photo'
+      preLoaderRoute: typeof PCodePhotoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  PlanoRoute: PlanoRoute,
   ShopeeRoute: ShopeeRoute,
   ApiHealthRoute: ApiHealthRoute,
   RCodeRoute: RCodeRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiRCodeRoute: ApiRCodeRoute,
+  PCodePhotoRoute: PCodePhotoRoute,
+  PCodeIndexRoute: PCodeIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

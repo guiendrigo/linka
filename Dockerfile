@@ -5,6 +5,7 @@ RUN npm ci
 COPY . .
 ENV NITRO_PRESET=node_server
 ENV VITE_SOCIAL_LOGIN=false
+ENV VITE_GOOGLE_LOGIN=true
 ENV PATH="/app/node_modules/.bin:$PATH"
 RUN node scripts/with-app-env.mjs vite build
 RUN npm prune --omit=dev
