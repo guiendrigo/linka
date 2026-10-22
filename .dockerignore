@@ -1,0 +1,13 @@
+.git
+.grok
+.output
+.vercel
+.node_modules
+node_modules
+openspec
+screenshots
+**/*.test.ts
+**/*.test.mjs
+.env
+.env.*
+!.env.example

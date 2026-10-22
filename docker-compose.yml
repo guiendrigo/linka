@@ -1,0 +1,40 @@
+name: linka
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      SQLITE_PATH: /data/linka.sqlite
+      HOST: "0.0.0.0"
+      PORT: "3000"
+    expose:
+      - "3000"
+    volumes:
+      - linka-data:/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # Optional. Uncomment if this VM has no reverse proxy yet and you will
+  # expose Linka with a Cloudflare Tunnel token.
+  # cloudflared:
+  #   image: cloudflare/cloudflared:latest
+  #   restart: unless-stopped
+  #   command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+  #   depends_on:
+  #     - app
+
+volumes:
+  linka-data:
