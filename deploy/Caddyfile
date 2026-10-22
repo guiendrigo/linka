@@ -1,0 +1,17 @@
+# Site block for the VM Caddy.
+# This host keeps Caddy in the OpenReply compose (`openreply-caddy-1`),
+# with the live file at `/opt/openreply/Caddyfile`. Copy this block there
+# (do not replace the other sites). The Linka container must join that
+# Caddy network with alias `linka` — see docker-compose.yml.
+
+linka.guiendrigo.com {
+	encode gzip
+	header {
+		-Server
+	}
+
+	@nocache path /r/* /p/* /api/*
+	header @nocache Cache-Control "no-store"
+
+	reverse_proxy linka:3000
+}
