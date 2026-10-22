@@ -8,7 +8,8 @@ O plano original pedia Next.js, Hono, Cloudflare Workers, Turso, Clerk, Stripe e
 
 ### Base
 
-- Home em português, mobile primeiro, com o simulador público do sérum (`/r/serum-c`).
+- Home pública em português, mobile primeiro, com o simulador do sérum (`/r/serum-c`).
+- Quem entra vê a conta em casca de console: Links e Shopee na barra, gaveta no celular. A home pública e o link `/r/...` ficam sem essa barra.
 - Conta por Google, X ou e-mail e senha. Não há magic link.
 - Cada pessoa só vê as próprias credenciais e os próprios produtos. O link público não pede conta.
 

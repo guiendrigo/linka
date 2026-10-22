@@ -1,9 +1,11 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { SignedIn } from "@/lib/auth/gates";
-import { useCurrentUser } from "@/lib/auth/use-current-user";
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { Bench } from "@/components/linka/bench";
-import { Workspace } from "@/components/linka/workspace";
+import { ConsolePending, ConsoleShell } from "@/components/linka/console";
 import { AppShell } from "@/components/linka/shell";
+import { useWorkspace } from "@/components/linka/use-workspace";
+import { LinksPanel, NewLinkButton, WorkspacePending } from "@/components/linka/workspace";
 import { DEMO_CODE } from "@/lib/linka/catalog";
 
 export const Route = createFileRoute("/")({
@@ -26,6 +28,48 @@ const STEPS = [
 ];
 
 function Home() {
+  const { user, isPending } = useCurrentUserState();
+  if (isPending) return <ConsolePending />;
+  if (user) return <LinksHome />;
+  return <PublicHome />;
+}
+
+function LinksHome() {
+  const { data, error, setData } = useWorkspace();
+  const [composing, setComposing] = useState(false);
+  const [composeNonce, setComposeNonce] = useState(0);
+
+  return (
+    <ConsoleShell
+      current="links"
+      title="Links"
+      subtitle="Um endereço. A oferta com estoque."
+      action={
+        <NewLinkButton
+          onClick={() => {
+            setComposing(true);
+            setComposeNonce((n) => n + 1);
+          }}
+        />
+      }
+    >
+      {!data ? (
+        <WorkspacePending error={error} />
+      ) : (
+        <LinksPanel
+          products={data.products}
+          canCheck={data.shopee.connected}
+          onChange={(products) => setData({ ...data, products })}
+          composing={composing}
+          composeNonce={composeNonce}
+          onComposingChange={setComposing}
+        />
+      )}
+    </ConsoleShell>
+  );
+}
+
+function PublicHome() {
   return (
     <AppShell>
       <div className="mt-8 grid items-start gap-8 lg:mt-16 lg:grid-cols-2 lg:gap-16">
@@ -40,9 +84,6 @@ function Home() {
             Um link seu. Se a oferta principal sair do ar, o Linka manda a pessoa para o backup —
             sem você editar o story de novo.
           </p>
-          <SignedIn>
-            <Welcome />
-          </SignedIn>
           <ol className="mt-8 divide-y divide-border border-y border-border">
             {STEPS.map((step, index) => (
               <li key={step.title} className="flex gap-4 py-4">
@@ -57,9 +98,6 @@ function Home() {
         </section>
         <Bench />
       </div>
-      <SignedIn>
-        <Workspace />
-      </SignedIn>
       <p className="mt-8 text-sm leading-relaxed text-muted lg:mt-12">
         Quem clica não precisa de conta: o endereço manda direto para a oferta com estoque. Se todas
         acabarem, a pessoa vê que esgotou. A decisão também responde em{" "}
@@ -72,17 +110,5 @@ function Home() {
         .
       </p>
     </AppShell>
-  );
-}
-
-function Welcome() {
-  const user = useCurrentUser();
-  const who = user?.displayName ?? user?.primaryEmail;
-  if (!who) return null;
-  return (
-    <p className="mt-4 text-sm text-muted">
-      Você entrou como <span className="font-medium text-fg">{who}</span>. O que cadastrar fica só
-      com você.
-    </p>
   );
 }

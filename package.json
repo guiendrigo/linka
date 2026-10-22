@@ -52,6 +52,7 @@
     "@tanstack/router-plugin": "^1.168.0",
     "@vitejs/plugin-react": "^5.2.0",
     "better-auth": "~1.6.30",
+    "better-sqlite3": "^12.11.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -59,6 +60,7 @@
     "jose": "6.2.9",
     "kysely": "^0.28.5",
     "lightningcss": "^1.28.0",
+    "lru-cache": "^11.5.3",
     "lucide-react": "^0.510.0",
     "nitro": "3.0.260610-beta",
     "pg": "^8.16.3",
@@ -80,6 +82,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^22.16.5",
     "@types/pg": "^8.11.10",
     "@types/react": "^19.2.0",
@@ -93,5 +96,8 @@
     "playwright": "^1.62.0",
     "prettier": "^3.4.0",
     "typescript-eslint": "^8.56.1"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true
   }
 }

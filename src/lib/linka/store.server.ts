@@ -120,13 +120,14 @@ export async function loadWorkspace(userId: string): Promise<WorkspaceView> {
 
 export async function saveCredentials(userId: string, appId: string, secret: string): Promise<void> {
   const sql = await getSql();
+  const updatedAt = new Date().toISOString();
   await sql`
     insert into shopee_credentials (user_id, app_id, secret, updated_at)
-    values (${userId}, ${appId}, ${secret}, now())
+    values (${userId}, ${appId}, ${secret}, ${updatedAt})
     on conflict (user_id) do update
       set app_id = excluded.app_id,
           secret = excluded.secret,
-          updated_at = now()
+          updated_at = excluded.updated_at
   `;
 }
 
@@ -144,9 +145,10 @@ export async function createProduct(userId: string, input: CleanProduct): Promis
     if (taken.length === 0) break;
     code = productCode(input.title);
   }
+  const createdAt = new Date().toISOString();
   await sql`
-    insert into products (id, user_id, code, title, price_cents, commission_pct)
-    values (${id}, ${userId}, ${code}, ${input.title}, ${input.priceCents}, ${input.commissionPct})
+    insert into products (id, user_id, code, title, price_cents, commission_pct, created_at)
+    values (${id}, ${userId}, ${code}, ${input.title}, ${input.priceCents}, ${input.commissionPct}, ${createdAt})
   `;
   try {
     for (let position = 0; position < input.offers.length; position += 1) {
@@ -373,7 +375,7 @@ export async function checkStock(
     for (const offer of group.offers) {
       if (offer.inStock !== inStock) changed += 1;
       await sql`
-        update offers set in_stock = ${inStock}, checked_at = now()
+        update offers set in_stock = ${inStock}, checked_at = ${new Date().toISOString()}
         where id = ${offer.id} and user_id = ${userId}
       `;
     }

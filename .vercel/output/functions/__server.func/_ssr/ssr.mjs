@@ -1,11 +1,12 @@
-import { r as __exportAll$1 } from "../_runtime.mjs";
+import { r as __exportAll } from "../_runtime.mjs";
+import { t as __exportAll$1 } from "./rolldown-runtime-8H4AJuhK.mjs";
 import { A as toCrossJSONStream, B as invariant, C as require_jsx_runtime, D as fromJSON, F as resolveManifestAssetLink, I as resolveManifestCssLink, K as isRedirect, L as waitForReason, N as getScriptPreloadAttrs, P as getStylesheetHref, Q as require_react, R as _getRenderedMatches, U as isDangerousProtocol, W as isPromise, X as isNotFound, Y as rootRouteId, a as isSsrResponse, c as stripSsrResponseBody, i as disposeSsrResponse, k as toCrossJSONAsync, n as bindSsrResponseToRequest, o as normalizeSsrResponse, p as RouterProvider, q as parseRedirect, r as defineHandlerCallback, s as replaceSsrResponse, t as renderRouterToStream, z as executeRewriteInput } from "../_libs/@tanstack/react-router+[...].mjs";
 import { n as createServerHistory } from "../_libs/tanstack__history.mjs";
 import { a as defaultSerovalDeserializerPlugins, i as createRawStreamRPCPlugin, n as attachRouterServerSsrUtils, o as makeSerovalPlugin, r as getNormalizedURL, s as createSerializationAdapter, t as mergeHeaders } from "../_libs/@tanstack/router-core+[...].mjs";
 import { n as setCookie, r as toResponse, t as H3Event } from "../_libs/h3-v2+rou3.mjs";
 import { AsyncLocalStorage } from "node:async_hooks";
 //#region node_modules/.nitro/vite/services/ssr/index.js
-var ssr_exports = /* @__PURE__ */ __exportAll$1({
+var ssr_exports = /* @__PURE__ */ __exportAll({
 	a: () => getServerFnById,
 	createServerEntry: () => createServerEntry,
 	default: () => server_default,
@@ -13,21 +14,10 @@ var ssr_exports = /* @__PURE__ */ __exportAll$1({
 	n: () => createMiddleware,
 	o: () => getRequest,
 	r: () => createServerFn,
-	s: () => __exportAll,
 	t: () => server_exports
 });
 require_react();
 var import_jsx_runtime = require_jsx_runtime();
-var __defProp = Object.defineProperty;
-var __exportAll = (all, no_symbols) => {
-	let target = {};
-	for (var name in all) __defProp(target, name, {
-		get: all[name],
-		enumerable: true
-	});
-	if (!no_symbols) __defProp(target, Symbol.toStringTag, { value: "Module" });
-	return target;
-};
 function StartServer(props) {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RouterProvider, { router: props.router });
 }
@@ -132,7 +122,7 @@ var HEADERS = { TSS_SHELL: "X-TSS_SHELL" };
 * the dev styles URL for route-scoped CSS collection.
 */
 async function getStartManifest(matchedRoutes) {
-	const { tsrStartManifest } = await import("../_tanstack-start-manifest_v-Bx9ya89j.mjs");
+	const { tsrStartManifest } = await import("../_tanstack-start-manifest_v-Dsyi_Hzm.mjs");
 	const startManifest = tsrStartManifest();
 	let routes = startManifest.routes;
 	routes[rootRouteId];
@@ -154,39 +144,39 @@ async function getStartManifest(matchedRoutes) {
 var manifest = {
 	"059bf76fbf611564222d39fd40694a844bb8b9c432118bb9386713e7f2bd5858": {
 		functionName: "getWorkspace_createServerFn_handler",
-		importer: () => import("./workspace.functions-CAs6Q77K.mjs")
+		importer: () => import("./workspace.functions-CEQf5nHm.mjs")
 	},
 	"0d9edb24912bf74ff8eb3c3dc091c6158d57aa24d3943f44ee39a54e02a4cc75": {
 		functionName: "saveShopeeCredentials_createServerFn_handler",
-		importer: () => import("./workspace.functions-CAs6Q77K.mjs")
+		importer: () => import("./workspace.functions-CEQf5nHm.mjs")
 	},
 	"156a2ae191035dc24aa4bacb36604d42939c5258c199d79dca1556b5d0bfdd60": {
 		functionName: "addProduct_createServerFn_handler",
-		importer: () => import("./workspace.functions-CAs6Q77K.mjs")
+		importer: () => import("./workspace.functions-CEQf5nHm.mjs")
 	},
 	"18987b496d6b14e6a61a3212798aaf76c93e6f7de9691a41017a62d4309bef47": {
 		functionName: "editProduct_createServerFn_handler",
-		importer: () => import("./workspace.functions-CAs6Q77K.mjs")
+		importer: () => import("./workspace.functions-CEQf5nHm.mjs")
 	},
 	"68345f626e4549d1e4b2b91c89e7522060736110c3875b614d804a8f697d05e3": {
 		functionName: "refreshStock_createServerFn_handler",
-		importer: () => import("./workspace.functions-CAs6Q77K.mjs")
+		importer: () => import("./workspace.functions-CEQf5nHm.mjs")
 	},
 	"69f981afc6d36ff09e64dde6147fee619233451a99f592843859d13fd9d3fba1": {
 		functionName: "removeProduct_createServerFn_handler",
-		importer: () => import("./workspace.functions-CAs6Q77K.mjs")
+		importer: () => import("./workspace.functions-CEQf5nHm.mjs")
 	},
 	"788efc79f993b15117f9c872ddcbda5cd3416d8baa7cabeb89bab2ef4a75b979": {
 		functionName: "resolveCode_createServerFn_handler",
-		importer: () => import("./resolve.functions-r0XHbScA.mjs")
+		importer: () => import("./resolve.functions-BHgzgq9T.mjs")
 	},
 	"c590ff26469ceb1746a3dee0f48599fec089320022a0f3b4fbef5bfaef737942": {
 		functionName: "removeShopeeCredentials_createServerFn_handler",
-		importer: () => import("./workspace.functions-CAs6Q77K.mjs")
+		importer: () => import("./workspace.functions-CEQf5nHm.mjs")
 	},
 	"d1ca61e51831a5144615f1a875a3648c530cb6fd4ccc502959ae70e645cb4b7b": {
 		functionName: "toggleOfferStock_createServerFn_handler",
-		importer: () => import("./workspace.functions-CAs6Q77K.mjs")
+		importer: () => import("./workspace.functions-CEQf5nHm.mjs")
 	}
 };
 async function getServerFnById(id, access) {
@@ -1591,7 +1581,7 @@ var getBaseManifest = getProdBaseManifest;
 var createEarlyHintsForRequest = createEarlyHintsCollector;
 async function loadEntries() {
 	const [routerEntry, startEntry, pluginAdapters] = await Promise.all([
-		import("./router-BvUu7IHg.mjs").then((n) => n.t),
+		import("./router-DnyDjaPg.mjs").then((n) => n.t),
 		import("./start-5Z2QO8AU.mjs"),
 		import("./empty-plugin-adapters-D9UWiqvJ.mjs")
 	]);
@@ -2048,7 +2038,7 @@ async function handleServerRoutes({ getRouter, request, url, executeRouter, cont
 		handlerType: "router"
 	}, request.signal, terminalNext));
 }
-var server_exports = /* @__PURE__ */ __exportAll({ setCookie: () => setCookie$1 });
+var server_exports = /* @__PURE__ */ __exportAll$1({ setCookie: () => setCookie$1 });
 var fetch = createStartHandler(defaultStreamHandler);
 function createServerEntry(entry) {
 	return { async fetch(...args) {
@@ -2057,4 +2047,4 @@ function createServerEntry(entry) {
 }
 var server_default = createServerEntry({ fetch });
 //#endregion
-export { getServerFnById as a, ssr_exports as c, createServerEntry, server_default as default, TSS_SERVER_FUNCTION as i, createMiddleware as n, getRequest as o, createServerFn as r, __exportAll as s, server_exports as t };
+export { getServerFnById as a, createServerEntry, server_default as default, TSS_SERVER_FUNCTION as i, createMiddleware as n, getRequest as o, createServerFn as r, ssr_exports as s, server_exports as t };

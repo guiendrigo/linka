@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { GROK_PROVIDERS, authClient, authEnabled, signIn } from "@/lib/auth/client";
+import { authClient, authEnabled, signIn, socialProviders } from "@/lib/auth/client";
 
 type Mode = "in" | "up";
 
@@ -64,7 +64,7 @@ export function LoginPanel() {
 
   return (
     <div className="flex flex-col gap-3">
-      {GROK_PROVIDERS.map((provider) => (
+      {socialProviders.map((provider) => (
         <Button
           key={provider.providerId}
           variant={provider.idp === "google" ? "primary" : "ghost"}
@@ -75,11 +75,13 @@ export function LoginPanel() {
         </Button>
       ))}
 
-      <div className="flex items-center gap-3 py-2 text-sm text-muted">
-        <span className="h-px flex-1 bg-border" />
-        ou com e-mail
-        <span className="h-px flex-1 bg-border" />
-      </div>
+      {socialProviders.length > 0 ? (
+        <div className="flex items-center gap-3 py-2 text-sm text-muted">
+          <span className="h-px flex-1 bg-border" />
+          ou com e-mail
+          <span className="h-px flex-1 bg-border" />
+        </div>
+      ) : null}
 
       <form className="flex flex-col gap-3" onSubmit={onSubmit}>
         {mode === "up" ? (

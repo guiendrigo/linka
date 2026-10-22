@@ -4392,6 +4392,7 @@ var require_lib = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 //#region node_modules/pg/esm/index.mjs
 var esm_exports = /* @__PURE__ */ __exportAll({
 	Pool: () => Pool,
+	default: () => esm_default,
 	types: () => types
 });
 var import_lib = /* @__PURE__ */ __toESM(require_lib(), 1);
@@ -4406,5 +4407,6 @@ import_lib.default.escapeLiteral;
 import_lib.default.Result;
 import_lib.default.TypeOverrides;
 import_lib.default.defaults;
+var esm_default = import_lib.default;
 //#endregion
 export { esm_exports as n, Pool as t };

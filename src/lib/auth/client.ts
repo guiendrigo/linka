@@ -1,6 +1,7 @@
 import { genericOAuthClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 import { runPreSignInSignOut, runSignOut } from "../../../scripts/sign-out-plan.mjs";
+import { isSocialLoginEnabled } from "./auth-config";
 import { GROK_PROVIDERS } from "./providers";
 
 /**
@@ -39,6 +40,12 @@ export const authEnabled = import.meta.env.VITE_AUTH_ENABLED !== "false";
 
 /** The upstream providers to render sign-in buttons for. */
 export { GROK_PROVIDERS };
+
+export const socialLoginEnabled = isSocialLoginEnabled(
+  import.meta.env.VITE_SOCIAL_LOGIN,
+);
+
+export const socialProviders = socialLoginEnabled ? GROK_PROVIDERS : [];
 
 // ── Live-preview bearer token ────────────────────────────────────────────────
 // The embedded preview iframe has partitioned cookies, so we keep the session's

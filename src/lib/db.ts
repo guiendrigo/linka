@@ -1,22 +1,33 @@
+import { mkdirSync } from "node:fs";
+import { createRequire } from "node:module";
+import { dirname } from "node:path";
+import { applySqliteMigrations } from "../../scripts/migrate.mjs";
 import { pendingMigrations } from "../../scripts/migration-plan.mjs";
+import {
+  pgPlaceholdersToSqlite,
+  resolveDbSource,
+  type DbSource,
+} from "./db-backend.ts";
 
-/** Which database backend is active. */
-export type DbSource = "neon" | "pglite";
+export type { DbSource };
 
-// An empty/whitespace DATABASE_URL (an easy misconfig in deploy UIs) must mean
-// "unset" — otherwise production would silently run on the PGLite fallback.
-const rawDatabaseUrl =
-  typeof process !== "undefined" ? process.env.DATABASE_URL : undefined;
-const databaseUrl =
-  rawDatabaseUrl && rawDatabaseUrl.trim() ? rawDatabaseUrl : undefined;
+function trimmedEnv(key: string): string | undefined {
+  if (typeof process === "undefined") return undefined;
+  const value = process.env[key]?.trim();
+  return value ? value : undefined;
+}
+
+const sqlitePath = trimmedEnv("SQLITE_PATH");
+const databaseUrl = trimmedEnv("DATABASE_URL");
 
 /**
- * Active backend: real **Neon** when `DATABASE_URL` is set (deployed / configured
- * sandbox), otherwise a local embedded **PGLite** (Postgres compiled to WASM) so
- * the app has a working database even with nothing configured — the live preview
- * included. Swap in Neon later by just setting `DATABASE_URL`; no code changes.
+ * SQLITE_PATH (Magalu SQLite file) wins, then Neon via DATABASE_URL, else the
+ * in-memory PGLite preview fallback.
  */
-export const dbSource: DbSource = databaseUrl ? "neon" : "pglite";
+export const dbSource: DbSource = resolveDbSource({
+  SQLITE_PATH: sqlitePath,
+  DATABASE_URL: databaseUrl,
+});
 
 /**
  * Minimal shared SQL surface, satisfied by both Neon and PGLite. Both the
@@ -48,6 +59,8 @@ const globalRef = globalThis as typeof globalThis & {
   __pgSqlPromise__?: Promise<Sql>;
   __pgliteInstance__?: Promise<import("@electric-sql/pglite").PGlite>;
   __pgliteMigrateChain__?: Promise<void>;
+  __sqliteDb__?: import("better-sqlite3").Database;
+  __sqliteSqlPromise__?: Promise<Sql>;
 };
 
 /**
@@ -83,6 +96,47 @@ function toSql(run: Run): Sql {
   sql.query = <T = Record<string, unknown>>(text: string, params: unknown[] = []) =>
     run<T>(text, params);
   return sql;
+}
+
+/**
+ * Shared better-sqlite3 handle (Magalu). Opens the file, enables foreign keys /
+ * WAL, and applies `migrations/sqlite/` before returning so Better Auth and
+ * `getSql()` share one migrated database.
+ */
+export function getSqliteDatabase(): import("better-sqlite3").Database {
+  if (dbSource !== "sqlite" || !sqlitePath) {
+    throw new Error("getSqliteDatabase() requires SQLITE_PATH");
+  }
+  if (!globalRef.__sqliteDb__) {
+    mkdirSync(dirname(sqlitePath), { recursive: true });
+    const require = createRequire(import.meta.url);
+    const Database = require("better-sqlite3") as typeof import("better-sqlite3");
+    const db = new Database(sqlitePath);
+    db.pragma("foreign_keys = ON");
+    db.pragma("journal_mode = WAL");
+    db.pragma("busy_timeout = 5000");
+    applySqliteMigrations(db);
+    globalRef.__sqliteDb__ = db;
+  }
+  return globalRef.__sqliteDb__;
+}
+
+function createSqliteSql(): Promise<Sql> {
+  globalRef.__sqliteSqlPromise__ ??= Promise.resolve()
+    .then(() => {
+      const db = getSqliteDatabase();
+      return toSql(async <T>(text: string, params: unknown[]) => {
+        const stmt = db.prepare(pgPlaceholdersToSqlite(text));
+        if (stmt.reader) return stmt.all(...params) as T[];
+        stmt.run(...params);
+        return [] as T[];
+      });
+    })
+    .catch((err) => {
+      globalRef.__sqliteSqlPromise__ = undefined;
+      throw err;
+    });
+  return globalRef.__sqliteSqlPromise__;
 }
 
 function createNeonSql(): Promise<Sql> {
@@ -176,15 +230,15 @@ async function createSql(): Promise<Sql> {
         "or a server route loader, never from client code.",
     );
   }
-  return dbSource === "neon" ? createNeonSql() : createPgliteSql();
+  if (dbSource === "sqlite") return createSqliteSql();
+  if (dbSource === "neon") return createNeonSql();
+  return createPgliteSql();
 }
 
 /**
- * Get the shared, **server-only** SQL client. Neon when `DATABASE_URL` is set,
- * otherwise the local PGLite fallback. Memoized — safe to call per request.
- *
- * Schema comes from `migrations/*.sql`, auto-applied before the first query on
- * both backends — define tables there, never inline in server functions.
+ * Get the shared, **server-only** SQL client. SQLite when `SQLITE_PATH` is set,
+ * Neon when `DATABASE_URL` is set, otherwise the local PGLite fallback.
+ * Memoized — safe to call per request.
  */
 export function getSql(): Promise<Sql> {
   sqlPromise ??= createSql().catch((err) => {
@@ -201,7 +255,9 @@ export function getSql(): Promise<Sql> {
  */
 export async function getPglite(): Promise<import("@electric-sql/pglite").PGlite> {
   if (dbSource !== "pglite") {
-    throw new Error("getPglite() is only available on the PGLite fallback (no DATABASE_URL)");
+    throw new Error(
+      "getPglite() is only available on the PGLite fallback (no SQLITE_PATH or DATABASE_URL)",
+    );
   }
   await getSql();
   const pg = await globalRef.__pgliteInstance__;
@@ -212,6 +268,7 @@ export async function getPglite(): Promise<import("@electric-sql/pglite").PGlite
 /**
  * Finish DB bootstrap before the server handles traffic.
  *
+ * - **SQLite** (`SQLITE_PATH`): open the file and apply `migrations/sqlite/`.
  * - **PGLite** (preview / no `DATABASE_URL`): open the in-memory DB and apply
  *   `migrations/*.sql`. Idempotent — concurrent callers share one promise.
  * - **Neon**: no-op (pool is created lazily on first query).
@@ -220,19 +277,19 @@ export async function getPglite(): Promise<import("@electric-sql/pglite").PGlite
  * module kick it off immediately (see bottom of file).
  */
 export function ensureDbReady(): Promise<void> {
-  if (dbSource !== "pglite") return Promise.resolve();
+  if (dbSource === "neon") return Promise.resolve();
   return getSql().then(() => undefined);
 }
 
-// Server-only eager start: kick PGLite bootstrap as soon as this module loads in
-// Node. Client bundles never hit this path (`getSql` throws in the browser).
+// Server-only eager start: kick SQLite / PGLite bootstrap as soon as this
+// module loads in Node. Client bundles never hit this path.
 const globalBoot = globalThis as typeof globalThis & {
   __pgBootstrapPromise__?: Promise<void>;
 };
-if (typeof window === "undefined" && dbSource === "pglite") {
+if (typeof window === "undefined" && dbSource !== "neon") {
   globalBoot.__pgBootstrapPromise__ ??= ensureDbReady().catch((err) => {
     globalBoot.__pgBootstrapPromise__ = undefined;
-    console.error("[db] PGLite bootstrap failed:", err);
+    console.error("[db] bootstrap failed:", err);
     throw err;
   });
 }
