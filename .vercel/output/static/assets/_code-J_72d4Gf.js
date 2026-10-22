@@ -1,0 +1,1 @@
+import{l as e}from"./themeProps-BOrfS1GI.js";import{g as t,t as n,y as r}from"./Button-5OqPEXao.js";var i=e();function a({children:e}){return(0,i.jsxs)(t,{gap:4,maxWidth:384,padding:5,className:`mx-auto min-h-dvh w-full py-10`,children:[e,(0,i.jsx)(r,{justify:`center`,className:`mt-auto pt-12`,children:(0,i.jsx)(n,{href:`/`,variant:`ghost`,label:`Linka`})})]})}export{a as t};

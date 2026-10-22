@@ -1,0 +1,1 @@
+import{i as e,t}from"./react-DB-4Zxce.js";import"./index-w3W3KI1Y.js";var n=e(t(),1);function r(e,t,r=!0){let i=(0,n.useRef)(!1);(0,n.useEffect)(()=>{r&&!i.current&&(i.current=!0)},[e,t,r])}export{r as t};
