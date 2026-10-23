@@ -1,0 +1,10 @@
+linka.guiendrigo.com {
+	tls /etc/caddy/certs/linka.pem /etc/caddy/certs/linka.key
+
+	encode gzip
+	header {
+		-Server
+	}
+
+	reverse_proxy 127.0.0.1:3000
+}
