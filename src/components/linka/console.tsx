@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import { Link2, Sparkles } from "lucide-react";
 import { useState, useSyncExternalStore, type ReactNode } from "react";
 import { AppShell } from "@astryxdesign/core/AppShell";
@@ -13,6 +12,7 @@ import { authEnabled, signOut } from "@/lib/auth/client";
 import { hasGateSessionMarker } from "@/lib/auth/gate-session-marker";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { PurchasesProvider, usePurchases } from "@/components/linka/use-purchases";
+import { LinkaBrand } from "@/components/linka/shell";
 import { billingEnabled } from "@/lib/linka/purchases";
 
 type ConsolePage = "links" | "plano";
@@ -42,11 +42,7 @@ export function ConsoleShell({
         topNav={
           <TopNav
             label="Linka"
-            heading={
-              <Link to="/">
-                <Text weight="semibold">Linka</Text>
-              </Link>
-            }
+            heading={<LinkaBrand />}
           />
         }
         sideNav={

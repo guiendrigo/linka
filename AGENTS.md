@@ -175,11 +175,11 @@ code before claiming a feature exists.
 
 ## Reference docs
 
-- `.grok/references/data-and-auth.md` — auth/database wiring.
-- `.grok/references/deploy-target.md` — Vercel build constraints.
-- `.grok/references/browser-qa.md` — browser verification.
-- `.grok/references/hibernate-revive.md` — sandbox restart contract.
-- `.grok/skills/*/SKILL.md` — platform design/auth/database guidance.
+- `.agents/references/data-and-auth.md` — auth/database wiring.
+- `.agents/references/deploy-target.md` — Vercel build constraints.
+- `.agents/references/browser-qa.md` — browser verification.
+- `.agents/references/hibernate-revive.md` — sandbox restart contract.
+- `.agents/skills/*/SKILL.md` — platform design/auth/database guidance.
 
 <!-- ASTRYX:START -->
 Astryx v0.7.3 · 173 components

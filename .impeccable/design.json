@@ -1,0 +1,249 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-23T03:06:00Z",
+  "title": "Design System: Linka",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "Laranja Linka",
+        "canonical": "#ff5c39",
+        "tonalRamp": ["#fff1ed", "#ffe4dc", "#ffc7a1", "#ff9e55", "#ff5c39", "#ee4d2d", "#c43a1f", "#992c15", "#622700"]
+      },
+      "accent-muted": {
+        "role": "neutral",
+        "displayName": "Laranja Suave",
+        "canonical": "#ffe4dc",
+        "tonalRamp": ["#fff7f5", "#ffe4dc", "#ffd2c2", "#503424"]
+      },
+      "text-accent": {
+        "role": "primary",
+        "displayName": "Laranja Destaque",
+        "canonical": "#c43a1f",
+        "tonalRamp": ["#ffb37e", "#ee4d2d", "#c43a1f", "#80210f"]
+      },
+      "stock-in-stock": {
+        "role": "secondary",
+        "displayName": "Verde Em Estoque",
+        "canonical": "#059669",
+        "tonalRamp": ["#ecfdf5", "#d1fae5", "#a7f3d0", "#6ee7b7", "#34d399", "#10b981", "#059669", "#047857", "#064e3b"]
+      },
+      "stock-out": {
+        "role": "secondary",
+        "displayName": "Vermelho Esgotado",
+        "canonical": "#ee4d2d",
+        "tonalRamp": ["#fff1f2", "#ffe4e6", "#fecdd3", "#fda4af", "#fb7185", "#f43f5e", "#ee4d2d", "#be123c", "#881337"]
+      },
+      "backup-active": {
+        "role": "secondary",
+        "displayName": "Laranja Backup Ativo",
+        "canonical": "#ff5c39",
+        "tonalRamp": ["#fff7ed", "#ffedd5", "#fed7aa", "#fdba74", "#fb923c", "#f97316", "#ff5c39", "#c2410c", "#7c2d12"]
+      },
+      "background-body": {
+        "role": "neutral",
+        "displayName": "Fundo Corporal",
+        "canonical": "#f1f1f1",
+        "tonalRamp": ["#ffffff", "#fafafa", "#f5f5f5", "#f1f1f1", "#e5e5e5", "#262626", "#1b1b1b", "#111111"]
+      },
+      "background-surface": {
+        "role": "neutral",
+        "displayName": "Superfície dos Cartões",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#ffffff", "#fafafa", "#f5f5f5", "#e5e5e5", "#262626"]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Borda Tênue",
+        "canonical": "#00000014",
+        "tonalRamp": ["#00000008", "#00000014", "#00000024", "#d4d4d4", "#525252"]
+      },
+      "text-primary": {
+        "role": "neutral",
+        "displayName": "Texto Principal",
+        "canonical": "#000000",
+        "tonalRamp": ["#ffffff", "#e5e5e5", "#737373", "#262626", "#000000"]
+      },
+      "text-secondary": {
+        "role": "neutral",
+        "displayName": "Texto Secundário",
+        "canonical": "#474747",
+        "tonalRamp": ["#a3a3a3", "#737373", "#525252", "#474747", "#262626"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Chamadas de topo da página pública com text-wrap balance."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Títulos de seções no console administrativo e painéis de produto."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Nomes de produtos e títulos de cartões de achadinho."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Textos explicativos corridos, descrições e campos de formulário."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Rótulos de campos e botões de ação."
+      },
+      "code": {
+        "displayName": "Code / Tabular",
+        "purpose": "Links públicos /r/codigo e valores monetários tabulares (tabular-nums)."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-xs",
+        "value": "0 1px 2px rgba(0, 0, 0, 0.05)",
+        "purpose": "Elevação sutil para botões e caixas de status em repouso."
+      },
+      {
+        "name": "shadow-med",
+        "value": "0 4px 12px rgba(0, 0, 0, 0.08)",
+        "purpose": "Elevação para gaveta lateral de edição e avatar da bio."
+      },
+      {
+        "name": "shadow-high",
+        "value": "0 12px 24px rgba(0, 0, 0, 0.12)",
+        "purpose": "Elevação para modais e sobreposições flutuantes."
+      }
+    ],
+    "motion": [
+      {
+        "name": "duration-fast",
+        "value": "125ms",
+        "purpose": "Transições instantâneas de hover, foco e botões."
+      },
+      {
+        "name": "duration-medium",
+        "value": "300ms",
+        "purpose": "Abertura e fechamento de gavetas laterais e abas."
+      },
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Curva de aceleração padrão para feedback natural."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botão Primário (Linka Orange)",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Botão principal de chamada para ação (salvar, entrar, ver oferta).",
+      "html": "<button class=\"ds-btn-primary\">Adicionar achadinho</button>",
+      "css": ".ds-btn-primary { background-color: #ff5c39; color: #ffffff; padding: 10px 18px; font-family: Figtree, -apple-system, sans-serif; font-size: 14px; font-weight: 600; border: none; border-radius: 10px; cursor: pointer; transition: background-color 125ms ease, transform 125ms ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; } .ds-btn-primary:hover { background-color: #ee4d2d; } .ds-btn-primary:active { transform: scale(0.98); } .ds-btn-primary:focus-visible { outline: 2px solid #ff5c39; outline-offset: 2px; }"
+    },
+    {
+      "name": "Botão Secundário",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Botão de ação secundária com fundo claro e borda sutil (copiar, testar clique).",
+      "html": "<button class=\"ds-btn-secondary\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\"/><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\"/></svg>Copiar link</button>",
+      "css": ".ds-btn-secondary { background-color: #ffffff; color: #111827; padding: 8px 14px; font-family: Figtree, -apple-system, sans-serif; font-size: 13px; font-weight: 500; border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 10px; cursor: pointer; transition: background-color 125ms ease, border-color 125ms ease; display: inline-flex; align-items: center; justify-content: center; gap: 6px; } .ds-btn-secondary:hover { background-color: #f5f5f5; border-color: rgba(0, 0, 0, 0.2); } .ds-btn-secondary:focus-visible { outline: 2px solid #ff5c39; outline-offset: 2px; }"
+    },
+    {
+      "name": "Crachá de Estoque Ativo",
+      "kind": "chip",
+      "refersTo": "stock-badge-in",
+      "description": "Pílula semântica verde indicando que a loja possui unidades disponíveis.",
+      "html": "<span class=\"ds-badge-instock\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"m9 12 2 2 4-4\"/></svg>Em estoque</span>",
+      "css": ".ds-badge-instock { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 9999px; background-color: #ecfdf5; color: #047857; font-family: Figtree, -apple-system, sans-serif; font-size: 12px; font-weight: 600; line-height: 1.4; }"
+    },
+    {
+      "name": "Crachá de Estoque Esgotado",
+      "kind": "chip",
+      "refersTo": "stock-badge-out",
+      "description": "Pílula semântica vermelha indicando ruptura de estoque.",
+      "html": "<span class=\"ds-badge-soldout\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"12\"/><line x1=\"12\" x2=\"12.01\" y1=\"16\" y2=\"16\"/></svg>Esgotado</span>",
+      "css": ".ds-badge-soldout { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 9999px; background-color: #fff1f2; color: #b91c1c; font-family: Figtree, -apple-system, sans-serif; font-size: 12px; font-weight: 600; line-height: 1.4; }"
+    },
+    {
+      "name": "Identidade Linka (Brand Mark)",
+      "kind": "custom",
+      "refersTo": "brand-mark",
+      "description": "Ícone da sacola com fundo laranja e tipografia com crachá de afiliado.",
+      "html": "<div class=\"ds-brand-mark\"><div class=\"ds-brand-icon\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z\"/><path d=\"M3 6h18\"/><path d=\"M16 10a4 4 0 0 1-8 0\"/></svg></div><div class=\"ds-brand-text\"><span class=\"ds-brand-title\">Linka</span><span class=\"ds-brand-sub\">AFILIADOS</span></div></div>",
+      "css": ".ds-brand-mark { display: inline-flex; align-items: center; gap: 8px; font-family: Figtree, -apple-system, sans-serif; text-decoration: none; } .ds-brand-icon { width: 28px; height: 28px; background-color: #ff5c39; color: #ffffff; border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.08); } .ds-brand-text { display: flex; align-items: baseline; gap: 6px; } .ds-brand-title { font-size: 18px; font-weight: 700; color: #000000; letter-spacing: -0.02em; } .ds-brand-sub { font-size: 11px; font-weight: 700; color: #c43a1f; text-transform: uppercase; letter-spacing: 0.05em; }"
+    },
+    {
+      "name": "Cartão de Produto Mobile",
+      "kind": "card",
+      "refersTo": "card-product",
+      "description": "Cartão de produto otimizado para celulares com preço tabular, estoque e destino.",
+      "html": "<div class=\"ds-product-card\"><div class=\"ds-card-header\"><span class=\"ds-card-title\">Sérum Vitamina C 30ml</span><span class=\"ds-badge-instock\">Em estoque</span></div><div class=\"ds-card-price-row\"><span class=\"ds-card-price\">R$ 39,90</span><span class=\"ds-card-commission\">18% de comissão</span></div><div class=\"ds-card-destination\"><div class=\"ds-dest-line\"><span>Destino do clique agora:</span><strong>Loja Oficial</strong></div><div class=\"ds-dest-url\"><span>/r/serum-c</span><span>2 ofertas</span></div></div></div>",
+      "css": ".ds-product-card { background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 16px; padding: 16px; font-family: Figtree, -apple-system, sans-serif; box-shadow: 0 1px 2px rgba(0,0,0,0.04); display: flex; flex-direction: column; gap: 12px; } .ds-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; } .ds-card-title { font-size: 16px; font-weight: 700; color: #000000; line-height: 1.3; } .ds-badge-instock { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 9999px; background-color: #ecfdf5; color: #047857; font-size: 12px; font-weight: 600; } .ds-card-price-row { display: flex; align-items: baseline; gap: 8px; } .ds-card-price { font-size: 18px; font-weight: 800; color: #000000; font-variant-numeric: tabular-nums; } .ds-card-commission { background-color: #ffe4dc; color: #c43a1f; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; } .ds-card-destination { background-color: #f1f1f1; border-radius: 8px; padding: 10px; font-size: 12px; display: flex; flex-direction: column; gap: 4px; } .ds-dest-line { display: flex; justify-content: space-between; color: #474747; } .ds-dest-line strong { color: #000000; } .ds-dest-url { display: flex; justify-content: space-between; font-family: monospace; color: #737373; font-size: 11px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "O Balcão Digital do Afiliado",
+    "overview": "O Linka é uma ferramenta de trabalho diário feita para o afiliado brasileiro de e-commerce (Shopee, Mercado Livre, Nuvemshop) que atua na correria das redes sociais — especialmente Instagram Stories, grupos de WhatsApp/Telegram e link na bio. A hierarquia visual resolve a dor central do afiliado: a ansiedade de perder comissão quando um anúncio esgota, providenciando inteligência de redirecionamento para ofertas de backup em tempo real.",
+    "keyCharacteristics": [
+      "Identidade Varejista Confiável com acento Laranja Linka (#ff5c39) sobre superfícies neutras de alta legibilidade.",
+      "Arquitetura estritamente Mobile-first desenvolvida e validada na base de 390×844 sem transbordo horizontal.",
+      "Sinalização semântica transparente de estoque com verde (em estoque) e vermelho (esgotado).",
+      "Precisão financeira rigorosa usando números tabulares (tabular-nums) em todos os preços (BRL) e comissões.",
+      "Tom direto, empático e honesto em Português do Brasil (pt-BR)."
+    ],
+    "rules": [
+      {
+        "name": "The Scarcity of Orange Rule",
+        "body": "O laranja vibrante (#ff5c39) é reservado para chamadas à ação (CTAs), para a oferta atualmente ativa e para a marca. Ele nunca cobre grandes planos de fundo nem concorre com o indicador verde de estoque.",
+        "section": "colors"
+      },
+      {
+        "name": "The Transparent Stock Rule",
+        "body": "Todo estado de estoque deve ser duplo: uma cor semântica identificável e um rótulo textual explícito ('Em estoque' ou 'Esgotado'). Nunca dependa exclusivamente de cor para comunicar disponibilidade.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Money Rule",
+        "body": "Todo valor em Reais (R$ xx,xx) e porcentagem de comissão estimada (xx%) deve obrigatoriamente renderizar com a classe tabular-nums (font-variant-numeric: tabular-nums).",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Superfícies não flutuam sem motivo. A separação entre elementos é feita prioritariamente pela alternância entre o cinza do corpo (#f1f1f1) e o branco dos cartões (#ffffff), demarcados por uma borda tênue de 1px.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do manter todos os textos do produto em Português do Brasil (pt-BR), claros e concisos.",
+      "Do formatar valores monetários sempre no padrão brasileiro (R$ 39,90) com números tabulares (tabular-nums).",
+      "Do garantir que qualquer tela ou modal funcione perfeitamente na largura de 390px sem barra de rolagem horizontal.",
+      "Do usar verde esmeralda para sinalizar estoque ativo e vermelho para estoque zerado."
+    ],
+    "donts": [
+      "Don't adicionar kickers ou sobrancelhas (eyebrows) decorativas acima do título H1.",
+      "Don't aplicar gradientes multicoloridos em textos (bg-clip-text text-transparent).",
+      "Don't inventar números, estatísticas fictícias (+10.000 afiliados), selos falsos ou depoimentos inventados.",
+      "Don't traduzir botões nativos da plataforma mantidos em inglês (ex: 'Sign out').",
+      "Don't expor comissões ou regras internas em links públicos visitados por compradores (/r/ ou /p/)."
+    ]
+  }
+}

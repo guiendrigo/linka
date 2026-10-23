@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Linka — Encarte da Semana</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Work+Sans:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 390px;
+      height: 844px;
+      overflow: hidden;
+      background: #f3f3ef;
+      font-family: 'Work Sans', sans-serif;
+      color: #141414;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .top-strip {
+      background: #e0261b;
+      color: #ffd400;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid #141414;
+    }
+    .top-logo {
+      font-family: 'Anton', sans-serif;
+      font-size: 28px;
+      letter-spacing: 1px;
+      color: #fff;
+      line-height: 1;
+    }
+    .top-badge {
+      background: #ffd400;
+      color: #141414;
+      font-weight: 900;
+      font-size: 11px;
+      padding: 3px 8px;
+      border: 2px solid #141414;
+      text-transform: uppercase;
+      box-shadow: 2px 2px 0 #141414;
+    }
+    .hero-box {
+      padding: 16px 16px 8px;
+    }
+    .kicker {
+      display: inline-block;
+      background: #141414;
+      color: #ffd400;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-family: 'Anton', sans-serif;
+      font-size: 32px;
+      line-height: 1.05;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    h1 span { color: #e0261b; }
+    .sub {
+      font-size: 13px;
+      line-height: 1.35;
+      font-weight: 500;
+      color: #333;
+    }
+    .product-block {
+      margin: 10px 16px;
+      background: #fff;
+      border: 3px solid #141414;
+      box-shadow: 4px 4px 0 #141414;
+      padding: 14px;
+      position: relative;
+    }
+    .prod-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .prod-title {
+      font-size: 16px;
+      font-weight: 900;
+      max-width: 190px;
+      line-height: 1.2;
+    }
+    .price-tag {
+      background: #ffd400;
+      border: 2px solid #141414;
+      padding: 4px 8px;
+      text-align: right;
+      transform: rotate(-2deg);
+      box-shadow: 2px 2px 0 #141414;
+    }
+    .price-num {
+      font-family: 'Anton', sans-serif;
+      font-size: 22px;
+      line-height: 1;
+      color: #e0261b;
+    }
+    .comissao {
+      font-size: 9px;
+      font-weight: 900;
+      color: #141414;
+    }
+    .hops {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .hop {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      border: 2px solid #141414;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .hop.out {
+      background: #f7f7f5;
+      color: #888;
+      position: relative;
+    }
+    .stamp-out {
+      color: #e0261b;
+      font-weight: 900;
+      font-size: 11px;
+      border: 2px dashed #e0261b;
+      padding: 1px 4px;
+      transform: rotate(3deg);
+    }
+    .hop.active {
+      background: #ffd400;
+      border-color: #e0261b;
+      box-shadow: 2px 2px 0 #e0261b;
+    }
+    .active-tag {
+      background: #e0261b;
+      color: #fff;
+      font-size: 10px;
+      padding: 2px 6px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .cta-row {
+      padding: 10px 16px;
+    }
+    .btn-main {
+      display: block;
+      width: 100%;
+      background: #e0261b;
+      color: #fff;
+      font-family: 'Anton', sans-serif;
+      font-size: 20px;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 12px;
+      border: 3px solid #141414;
+      box-shadow: 4px 4px 0 #141414;
+      text-decoration: none;
+      letter-spacing: 0.5px;
+    }
+    .rules-footer {
+      margin-top: auto;
+      background: #e9e9e3;
+      border-top: 2px solid #141414;
+      padding: 10px 16px;
+      font-size: 10px;
+      color: #444;
+      line-height: 1.3;
+    }
+    .rule-title { font-weight: 900; color: #141414; }
+  </style>
+</head>
+<body>
+  <div class="top-strip">
+    <div class="top-logo">LINKA*</div>
+    <div class="top-badge">O Backup Automático</div>
+  </div>
+
+  <div class="hero-box">
+    <span class="kicker">Para Afiliados Shopee</span>
+    <h1>O estoque acabou? <span>O clique não morre.</span></h1>
+    <p class="sub">Cadastre a oferta principal e os backups. Se a loja zerar, o Linka manda seu seguidor direto pro produto que ainda vende.*</p>
+  </div>
+
+  <div class="product-block">
+    <div class="prod-head">
+      <div>
+        <div style="font-size:10px;font-weight:900;color:#666;text-transform:uppercase;">Demonstração ao vivo</div>
+        <div class="prod-title">Sérum Vitamina C 30ml</div>
+      </div>
+      <div class="price-tag">
+        <div class="price-num">R$ 39,90</div>
+        <div class="comissao">18% comissão</div>
+      </div>
+    </div>
+    <div class="hops">
+      <div class="hop out">
+        <span>1. Loja Aurora (Principal)</span>
+        <span class="stamp-out">ESGOTADO</span>
+      </div>
+      <div class="hop active">
+        <span>2. Loja Norte (Backup 1)</span>
+        <span class="active-tag">O clique cai aqui &rarr;</span>
+      </div>
+      <div class="hop" style="background:#fff;">
+        <span>3. Loja Leste (Backup 2)</span>
+        <span style="color:#666;font-size:11px;">Na reserva</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta-row">
+    <a href="#" class="btn-main">Criar meu link grátis</a>
+  </div>
+
+  <div class="rules-footer">
+    <span class="rule-title">*REGRAS DO SISTEMA:</span> Checagem a cada 15 min via catálogo oficial &bull; Apenas links HTTPS &bull; Seguidor não precisa de conta &bull; Sua comissão fica 100% protegida.
+  </div>
+</body>
+</html>

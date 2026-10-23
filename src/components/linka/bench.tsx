@@ -1,4 +1,4 @@
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, ExternalLink, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@astryxdesign/core/Button";
 import { Card } from "@astryxdesign/core/Card";
@@ -48,57 +48,98 @@ export function Bench() {
   }
 
   return (
-    <Card padding={2} aria-label="Simulador do link">
-      <VStack gap={3} padding={2}>
+    <Card padding={4} aria-label="Simulador do link inteligente">
+      <VStack gap={4}>
+        <div className="flex items-center justify-between gap-2 border-b border-[var(--color-border)] pb-3">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--color-text-accent)]">
+            <Sparkles size={14} aria-hidden="true" />
+            <span>Simulador ao vivo de Achadinho</span>
+          </div>
+          <span className="rounded bg-[var(--color-accent-muted)] px-2 py-0.5 text-[11px] font-medium text-[var(--color-text-accent)]">
+            Alterne o estoque abaixo
+          </span>
+        </div>
+
         <VStack gap={1}>
-          <Text color="secondary" size="sm">
-            {link.detail}
-          </Text>
           <Heading level={2}>{link.title}</Heading>
-          <Text hasTabularNumbers>
-            {formatBrl(link.priceCents)}
-            <Text as="span" color="accent" weight="semibold">
-              {" "}
-              · {link.commissionPct}% de comissão
-            </Text>
-          </Text>
+          <div className="flex flex-wrap items-baseline gap-2">
+            <span className="text-xl font-bold tracking-tight text-[var(--color-text-primary)]">
+              {formatBrl(link.priceCents)}
+            </span>
+            <span className="inline-flex items-center rounded-full bg-[var(--color-accent-muted)] px-2 py-0.5 text-xs font-semibold text-[var(--color-text-accent)]">
+              {link.commissionPct}% de comissão estimada
+            </span>
+          </div>
         </VStack>
 
-        {offers.map((offer, index) => {
-          const chosen = resolution.status === "ok" && resolution.offer.id === offer.id;
-          return (
-            <Card key={offer.id} padding={3} elevation={chosen ? "low" : "none"}>
-              <Switch
-                label={`${index === 0 ? "Principal" : `Backup ${index}`}: ${offer.shop}`}
-                description={offer.inStock ? "Em estoque" : "Sem estoque"}
-                value={offer.inStock}
-                onChange={() => toggle(offer.id)}
-                width="100%"
-              />
-            </Card>
-          );
-        })}
+        <VStack gap={2}>
+          {offers.map((offer, index) => {
+            const isChosen = resolution.status === "ok" && resolution.offer.id === offer.id;
+            const roleLabel = index === 0 ? "Oferta principal" : `Backup ${index}`;
+            return (
+              <div
+                key={offer.id}
+                className={`rounded-xl border p-3 transition-colors ${
+                  isChosen
+                    ? "border-[var(--color-accent)] bg-[var(--color-accent-muted)]/20 shadow-xs"
+                    : !offer.inStock
+                      ? "border-[var(--color-border)] bg-[var(--color-background-body)]/50 opacity-75"
+                      : "border-[var(--color-border)] bg-[var(--color-surface)]"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase">
+                        {roleLabel}
+                      </span>
+                      {isChosen ? (
+                        <span className="inline-flex items-center gap-1 rounded bg-[var(--color-accent)] px-1.5 py-0.2 text-[10px] font-bold text-white uppercase">
+                          O clique cai aqui
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="text-sm font-medium text-[var(--color-text-primary)] truncate">
+                      {offer.shop}
+                    </div>
+                  </div>
+                  <Switch
+                    label={offer.inStock ? "Em estoque" : "Esgotado"}
+                    value={offer.inStock}
+                    onChange={() => toggle(offer.id)}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </VStack>
 
-        <VStack gap={2} padding={2}>
-          <Text color="secondary" size="sm">
-            Para onde o clique vai
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-background-body)] p-3.5">
+          <Text size="sm" color="secondary">
+            Destino da visita agora
           </Text>
-          <Heading level={3}>{copy.title}</Heading>
-          <Text color="secondary" size="sm">
+          <div className="mt-1 flex items-baseline gap-2">
+            <span className="text-base font-semibold text-[var(--color-text-primary)]">
+              {copy.title}
+            </span>
+          </div>
+          <Text size="sm" color="secondary" className="mt-0.5">
             {copy.body}
           </Text>
-        </VStack>
-        <div className="grid grid-cols-2 gap-2">
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 pt-1">
           <Button
             width="100%"
             icon={copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
-            label={copied ? "Copiado" : "Copiar link"}
+            label={copied ? "Copiado!" : "Copiar link"}
             onClick={copyLink}
           />
           <Button
             href={`/r/${DEMO_CODE}?on=${encodeURIComponent(on)}`}
             variant="secondary"
-            label="Abrir link"
+            icon={<ExternalLink size={16} aria-hidden="true" />}
+            label="Testar clique"
             target="_blank"
             rel="noopener noreferrer"
           />

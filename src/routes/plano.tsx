@@ -6,7 +6,7 @@ import { PlanPanel } from "@/components/linka/plan";
 import { billingEnabled } from "@/lib/linka/purchases";
 
 export const Route = createFileRoute("/plano")({
-  head: () => ({ meta: [{ title: "Plano · Linka" }] }),
+  head: () => ({ meta: [{ title: "Plano e Assinatura · Linka" }] }),
   component: PlanoPage,
 });
 
@@ -18,8 +18,8 @@ function PlanoPage() {
   return (
     <ConsoleShell
       current="plano"
-      title="Plano"
-      subtitle="Assinatura da conta. Anual ou mensal, com o entitlement linka_pro."
+      title="Plano e Assinatura"
+      subtitle="Turbine suas comissões na Shopee com links inteligentes que nunca ficam sem estoque."
     >
       <PlanPanel />
     </ConsoleShell>

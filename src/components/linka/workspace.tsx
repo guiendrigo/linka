@@ -1,8 +1,22 @@
-import { Check, Copy, Link2, Plus, Trash2 } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowDown,
+  ArrowUp,
+  Check,
+  CheckCircle2,
+  Clock,
+  Copy,
+  ExternalLink,
+  Plus,
+  RefreshCw,
+  ShoppingBag,
+  Trash2,
+} from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Banner } from "@astryxdesign/core/Banner";
 import { Button } from "@astryxdesign/core/Button";
 import { Card } from "@astryxdesign/core/Card";
+import { Heading } from "@astryxdesign/core/Heading";
 import { IconButton } from "@astryxdesign/core/IconButton";
 import { Switch } from "@astryxdesign/core/Switch";
 import { Text } from "@astryxdesign/core/Text";
@@ -56,7 +70,7 @@ function stockOf(product: WorkspaceProduct) {
       : resolution.status === "all_out"
         ? { label: "Esgotado", on: false }
         : { label: "Sem destino", on: false };
-  return { copy, status };
+  return { copy, status, resolution };
 }
 
 export function WorkspacePending({ error }: { error: string | null }) {
@@ -65,7 +79,7 @@ export function WorkspacePending({ error }: { error: string | null }) {
       {error ? (
         <Banner status="error" title={error} />
       ) : (
-        <div className="h-40 animate-pulse rounded-3xl bg-surface" />
+        <div className="h-40 animate-pulse rounded-3xl bg-[var(--color-surface)]" />
       )}
     </div>
   );
@@ -139,17 +153,19 @@ function BioBlock({ bio, onChange }: { bio: BioPageView; onChange: (next: BioPag
       ? ""
       : (previewPathPrefix(window.location.hostname, window.location.pathname) ?? "");
   const photoSrc = `${prefix}/p/${bio.code}/photo${photoNonce ? `?t=${photoNonce}` : ""}`;
+  const bioUrl = `${prefix}/p/${bio.code}`;
 
   return (
     <Card padding={4}>
-      <div className="flex flex-wrap items-start gap-4">
-        <label className="grid size-20 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-full bg-body">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <label className="relative grid size-20 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-full border-2 border-[var(--color-border)] bg-[var(--color-background-body)] shadow-sm hover:border-[var(--color-accent)] transition-colors">
           {bio.hasPhoto ? (
-            <img src={photoSrc} alt="" className="size-20 rounded-full object-cover" />
+            <img src={photoSrc} alt={bio.title} className="size-20 rounded-full object-cover" />
           ) : (
-            <Text size="sm" color="secondary">
-              Foto
-            </Text>
+            <div className="flex flex-col items-center gap-0.5 text-center">
+              <ShoppingBag size={20} className="text-[var(--color-text-secondary)]" />
+              <span className="text-[10px] font-medium text-[var(--color-text-secondary)]">Foto</span>
+            </div>
           )}
           <input
             type="file"
@@ -162,32 +178,63 @@ function BioBlock({ bio, onChange }: { bio: BioPageView; onChange: (next: BioPag
               void onPhoto(file);
             }}
           />
-          <span className="sr-only">{photoPending ? "Enviando foto" : "Enviar foto de perfil"}</span>
+          <span className="sr-only">{photoPending ? "Enviando foto…" : "Enviar foto de perfil"}</span>
         </label>
+
         <VStack gap={1} className="min-w-0 flex-1">
-          <Text weight="medium">Página da bio</Text>
-          <Text size="sm" color="secondary">
-            /p/{bio.code}
-          </Text>
-          <Button
-            variant="secondary"
-            icon={copied ? <Check size={16} /> : <Copy size={16} />}
-            label={copied ? "Copiado" : "Copiar link"}
-            onClick={copyAddress}
-          />
+          <div className="flex items-center gap-2">
+            <span className="text-base font-bold text-[var(--color-text-primary)]">
+              {bio.title || "Sua página da bio"}
+            </span>
+          </div>
+          <div className="text-xs text-[var(--color-text-secondary)]">
+            Endereço público: <span className="font-mono text-[var(--color-text-primary)]">/p/{bio.code}</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <Button
+              variant="secondary"
+              icon={copied ? <Check size={16} /> : <Copy size={16} />}
+              label={copied ? "Copiado!" : "Copiar link da bio"}
+              onClick={copyAddress}
+            />
+            <Button
+              variant="ghost"
+              href={bioUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              icon={<ExternalLink size={16} />}
+              label="Abrir bio"
+            />
+          </div>
         </VStack>
       </div>
-      <form className="mt-4" onSubmit={save}>
+
+      <form className="mt-4 border-t border-[var(--color-border)] pt-4" onSubmit={save}>
         <VStack gap={3}>
-          <TextInput label="Título" value={title} onChange={setTitle} width="100%" />
-          <TextArea label="Descrição" value={description} onChange={setDescription} rows={3} width="100%" />
-          {error ? <Banner status="error" title={error} /> : null}
-          <Button
-            type="submit"
-            isDisabled={pending || photoPending}
-            isLoading={pending}
-            label={pending ? "Salvando…" : "Salvar página"}
+          <TextInput
+            label="Nome da página ou perfil"
+            value={title}
+            onChange={setTitle}
+            placeholder="Ex: Achadinhos da Mari · Shopee"
+            width="100%"
           />
+          <TextArea
+            label="Descrição para seus seguidores"
+            value={description}
+            onChange={setDescription}
+            placeholder="Ex: As melhores ofertas e achados da Shopee testados por mim!"
+            rows={2}
+            width="100%"
+          />
+          {error ? <Banner status="error" title={error} /> : null}
+          <div className="flex justify-end pt-1">
+            <Button
+              type="submit"
+              isDisabled={pending || photoPending}
+              isLoading={pending}
+              label={pending ? "Salvando…" : "Salvar informações da bio"}
+            />
+          </div>
         </VStack>
       </form>
     </Card>
@@ -353,23 +400,30 @@ export function LinksPanel({
   return (
     <VStack gap={4}>
       <BioBlock bio={bio} onChange={(next) => onChange({ bio: next })} />
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        {checkAlert ? (
-          <Banner status="warning" title={checkNote ?? "Estoque indisponível agora."} />
-        ) : (
-          <Text color="secondary" size="sm">
-            {canCheck
-              ? checking
-                ? "Conferindo na Shopee…"
-                : (checkNote ??
-                  "Na visita, a Shopee confirma o estoque quando a URL tem o código …-i.loja.item.")
-              : "Você marca o estoque de cada oferta. O clique tenta a principal e cai no backup que ainda estiver marcada."}
-          </Text>
-        )}
+
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <Clock size={16} className="text-[var(--color-text-accent)] shrink-0" aria-hidden="true" />
+          {checkAlert ? (
+            <span className="text-xs text-[var(--color-text-secondary)]">
+              {checkNote ?? "Estoque indisponível agora."}
+            </span>
+          ) : (
+            <span className="text-xs text-[var(--color-text-secondary)]">
+              {canCheck
+                ? checking
+                  ? "Conferindo disponibilidade no catálogo Shopee…"
+                  : (checkNote ??
+                    "Conferência automática ativa: a Shopee verifica o estoque de links com código a cada 15 min.")
+                : "Controle de estoque manual: você marca o que vende. O clique tenta a principal e cai no backup ativo."}
+            </span>
+          )}
+        </div>
         {canCheck ? (
           <Button
             variant="secondary"
-            label={checking ? "Conferindo…" : "Conferir estoque"}
+            icon={<RefreshCw size={14} className={checking ? "animate-spin" : ""} />}
+            label={checking ? "Conferindo…" : "Conferir agora"}
             isDisabled={checking || products.length === 0}
             isLoading={checking}
             onClick={() => runCheck(true)}
@@ -381,146 +435,224 @@ export function LinksPanel({
 
       {products.length === 0 ? (
         <Card padding={8}>
-          <VStack gap={3} hAlign="center">
-            <Link2 className="size-8 text-secondary" aria-hidden="true" />
-            <Text color="secondary">Nenhum produto ainda.</Text>
-            <Button
-              icon={<Plus size={16} aria-hidden="true" />}
-              label="Adicionar produto"
-              onClick={() => onComposingChange(true)}
-            />
+          <VStack gap={3} hAlign="center" className="text-center py-6">
+            <div className="flex size-14 items-center justify-center rounded-full bg-[var(--color-accent-muted)] text-[var(--color-text-accent)]">
+              <ShoppingBag size={28} aria-hidden="true" />
+            </div>
+            <Heading level={2} className="text-lg">Nenhum achadinho cadastrado ainda</Heading>
+            <Text color="secondary" className="max-w-md text-sm">
+              Cadastre seu primeiro produto com ofertas de reserva. Quando a loja principal esgotar,
+              seus seguidores continuam comprando no backup e você não perde comissão.
+            </Text>
+            <div className="pt-2">
+              <Button
+                icon={<Plus size={16} aria-hidden="true" />}
+                label="Adicionar primeiro produto"
+                onClick={() => onComposingChange(true)}
+              />
+            </div>
           </VStack>
         </Card>
       ) : (
         <>
-          <VStack gap={3} className="lg:hidden">
+          {/* Mobile view: rich e-commerce product cards (never overflow) */}
+          <div className="flex flex-col gap-3 lg:hidden">
             {products.map((product) => {
               const { copy, status } = stockOf(product);
+              const inStock = status.on;
+              const isCopied = copied === product.code;
               return (
-                <Card key={product.id} padding={4}>
-                  <VStack gap={2}>
-                    <Button
-                      variant="ghost"
-                      label={product.title}
+                <div
+                  key={product.id}
+                  className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-xs"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <button
+                      type="button"
+                      className="text-left font-bold text-base text-[var(--color-text-primary)] hover:text-[var(--color-text-accent)] transition-colors focus-visible:outline-none"
                       onClick={() => beginEdit(product)}
-                    />
-                    <Text size="sm" color="secondary">
+                    >
+                      {product.title}
+                    </button>
+                    <span
+                      className={`inline-flex items-center gap-1 shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        inStock
+                          ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                          : "bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300"
+                      }`}
+                    >
+                      {inStock ? (
+                        <CheckCircle2 size={12} aria-hidden="true" />
+                      ) : (
+                        <AlertCircle size={12} aria-hidden="true" />
+                      )}
                       {status.label}
-                    </Text>
-                    <Text size="sm" color="secondary" hasTabularNumbers>
-                      {formatBrl(product.priceCents)} · {product.commissionPct}%
-                    </Text>
-                    <Text size="sm" color="secondary">
-                      /r/{product.code}
-                    </Text>
-                    <Text size="sm" color="secondary">
-                      {copy.title}
-                    </Text>
+                    </span>
+                  </div>
+
+                  <div className="mt-2 flex flex-wrap items-baseline gap-2">
+                    <span className="text-base font-bold text-[var(--color-text-primary)] tabular-nums">
+                      {formatBrl(product.priceCents)}
+                    </span>
+                    <span className="rounded bg-[var(--color-accent-muted)] px-1.5 py-0.5 text-[11px] font-semibold text-[var(--color-text-accent)]">
+                      {product.commissionPct}% de comissão
+                    </span>
+                  </div>
+
+                  <div className="mt-3 rounded-lg bg-[var(--color-background-body)] p-2.5 text-xs">
+                    <div className="flex items-center justify-between text-[var(--color-text-secondary)]">
+                      <span>Destino do clique agora:</span>
+                      <span className="font-semibold text-[var(--color-text-primary)] truncate max-w-44">
+                        {copy.title}
+                      </span>
+                    </div>
+                    <div className="mt-1 flex items-center justify-between font-mono text-[11px] text-[var(--color-text-secondary)]">
+                      <span>/r/{product.code}</span>
+                      <span className="text-[10px] text-[var(--color-text-accent)]">
+                        {product.offers.length} {product.offers.length === 1 ? "oferta" : "ofertas"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between border-t border-[var(--color-border)] pt-3">
                     <Switch
-                      label={product.bioVisible ? "Visível na bio" : "Oculto na bio"}
+                      label={product.bioVisible ? "Na bio" : "Oculto"}
                       value={product.bioVisible}
                       isDisabled={pending}
                       onChange={() => toggleVisible(product)}
                     />
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex items-center gap-1.5">
                       <Button
                         variant="secondary"
-                        icon={
-                          copied === product.code ? (
-                            <Check size={16} />
-                          ) : (
-                            <Copy size={16} />
-                          )
-                        }
-                        label={copied === product.code ? "Copiado" : "Copiar"}
+                        icon={isCopied ? <Check size={14} /> : <Copy size={14} />}
+                        label={isCopied ? "Copiado!" : "Copiar"}
                         onClick={() => copyLink(product.code)}
+                      />
+                      <Button
+                        variant="ghost"
+                        label="Editar"
+                        onClick={() => beginEdit(product)}
                       />
                       {confirmId === product.id ? (
                         <Button
                           variant="destructive"
-                          icon={<Trash2 size={16} aria-hidden="true" />}
-                          label="Sim"
+                          icon={<Trash2 size={14} aria-hidden="true" />}
+                          label="Confirmar"
                           isDisabled={pending}
                           onClick={() => remove(product.id)}
                         />
                       ) : (
-                        <Button variant="ghost" label="Apagar" onClick={() => setConfirmId(product.id)} />
+                        <IconButton
+                          variant="ghost"
+                          label="Apagar"
+                          icon={<Trash2 size={14} aria-hidden="true" />}
+                          onClick={() => setConfirmId(product.id)}
+                        />
                       )}
                     </div>
-                  </VStack>
-                </Card>
+                  </div>
+                </div>
               );
             })}
-          </VStack>
+          </div>
 
-          <div className="hidden overflow-x-auto rounded-xl border border-border lg:block">
-            <table className="w-full min-w-[40rem] border-collapse text-left">
-              <thead className="bg-muted text-xs font-medium tracking-wide text-secondary uppercase">
+          {/* Desktop view: clean, well-spaced table */}
+          <div className="hidden overflow-x-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] lg:block">
+            <table className="w-full min-w-[46rem] border-collapse text-left">
+              <thead className="bg-[var(--color-background-body)] text-xs font-semibold tracking-wider text-[var(--color-text-secondary)] uppercase">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Produto</th>
-                  <th className="px-4 py-3 font-medium">Código</th>
-                  <th className="px-4 py-3 font-medium">Preço</th>
-                  <th className="px-4 py-3 font-medium">Estoque</th>
-                  <th className="px-4 py-3 font-medium">Destino</th>
-                  <th className="px-4 py-3 font-medium">Bio</th>
-                  <th className="px-4 py-3 font-medium">
-                    <span className="sr-only">Ações</span>
-                  </th>
+                  <th className="px-4 py-3">Produto</th>
+                  <th className="px-4 py-3">Link</th>
+                  <th className="px-4 py-3">Preço</th>
+                  <th className="px-4 py-3">Estoque</th>
+                  <th className="px-4 py-3">Destino Atual</th>
+                  <th className="px-4 py-3">Na Bio</th>
+                  <th className="px-4 py-3 text-right">Ações</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-[var(--color-border)]">
                 {products.map((product) => {
                   const { copy, status } = stockOf(product);
+                  const inStock = status.on;
                   return (
-                    <tr key={product.id} className="border-t border-border">
-                      <td className="px-4 py-3">
-                        <Button variant="ghost" label={product.title} onClick={() => beginEdit(product)} />
-                        <Text size="sm" color="secondary" hasTabularNumbers>
-                          {product.commissionPct}%
-                        </Text>
+                    <tr key={product.id} className="hover:bg-[var(--color-background-body)]/40 transition-colors">
+                      <td className="px-4 py-3.5">
+                        <button
+                          type="button"
+                          className="text-left font-semibold text-sm text-[var(--color-text-primary)] hover:text-[var(--color-text-accent)] focus-visible:outline-none"
+                          onClick={() => beginEdit(product)}
+                        >
+                          {product.title}
+                        </button>
+                        <div className="text-xs text-[var(--color-text-secondary)]">
+                          {product.commissionPct}% de comissão estimada
+                        </div>
                       </td>
-                      <td className="px-4 py-3">
-                        <Text size="sm" color="secondary">
+                      <td className="px-4 py-3.5">
+                        <span className="font-mono text-xs text-[var(--color-text-secondary)]">
                           /r/{product.code}
-                        </Text>
+                        </span>
                       </td>
-                      <td className="px-4 py-3">
-                        <Text size="sm" hasTabularNumbers>
+                      <td className="px-4 py-3.5">
+                        <span className="text-sm font-semibold tabular-nums text-[var(--color-text-primary)]">
                           {formatBrl(product.priceCents)}
-                        </Text>
+                        </span>
                       </td>
-                      <td className="px-4 py-3">
-                        <Text size="sm">{status.label}</Text>
+                      <td className="px-4 py-3.5">
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                            inStock
+                              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                              : "bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300"
+                          }`}
+                        >
+                          {status.label}
+                        </span>
                       </td>
-                      <td className="max-w-40 truncate px-4 py-3">
-                        <Text size="sm">{copy.title}</Text>
+                      <td className="max-w-44 truncate px-4 py-3.5">
+                        <span className="text-xs font-medium text-[var(--color-text-primary)]">
+                          {copy.title}
+                        </span>
+                        <div className="text-[11px] text-[var(--color-text-secondary)] truncate">
+                          {product.offers.length} ofertas cadastradas
+                        </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3.5">
                         <Switch
-                          label={product.bioVisible ? "Visível" : "Oculto"}
+                          label={product.bioVisible ? "Sim" : "Não"}
                           value={product.bioVisible}
                           isDisabled={pending}
                           onChange={() => toggleVisible(product)}
                         />
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex justify-end gap-1">
-                          <IconButton
-                            variant="ghost"
-                            label={copied === product.code ? "Copiado" : "Copiar"}
-                            icon={copied === product.code ? <Check size={16} /> : <Copy size={16} />}
+                      <td className="px-4 py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="secondary"
+                            icon={copied === product.code ? <Check size={14} /> : <Copy size={14} />}
+                            label={copied === product.code ? "Copiado!" : "Copiar"}
                             onClick={() => copyLink(product.code)}
+                          />
+                          <Button
+                            variant="ghost"
+                            label="Editar"
+                            onClick={() => beginEdit(product)}
                           />
                           {confirmId === product.id ? (
                             <Button
                               variant="destructive"
-                              icon={<Trash2 size={16} aria-hidden="true" />}
-                              label="Sim"
+                              icon={<Trash2 size={14} aria-hidden="true" />}
+                              label="Confirmar"
                               isDisabled={pending}
                               onClick={() => remove(product.id)}
                             />
                           ) : (
-                            <Button variant="ghost" label="Apagar" onClick={() => setConfirmId(product.id)} />
+                            <IconButton
+                              variant="ghost"
+                              label="Apagar"
+                              icon={<Trash2 size={14} aria-hidden="true" />}
+                              onClick={() => setConfirmId(product.id)}
+                            />
                           )}
                         </div>
                       </td>
@@ -533,88 +665,139 @@ export function LinksPanel({
         </>
       )}
 
-      <SidePanel open={composing} title={editingId ? "Editar produto" : "Novo produto"} onClose={resetForm}>
+      {/* Side panel for creating or editing product */}
+      <SidePanel
+        open={composing}
+        title={editingId ? "Editar achadinho" : "Novo achadinho"}
+        onClose={resetForm}
+      >
         <form className="flex min-h-0 flex-1 flex-col" onSubmit={onSubmit}>
-          <VStack gap={3} padding={4} className="flex-1 overflow-y-auto">
-            <Text color="secondary" size="sm">
+          <VStack gap={4} padding={4} className="flex-1 overflow-y-auto">
+            <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-xs text-[var(--color-text-secondary)]">
               {editingId
-                ? "O endereço do link não muda. A primeira oferta é a principal."
-                : "A primeira oferta é a principal. As seguintes são backups."}
-            </Text>
-            <Text color="secondary" size="sm">
-              Link encurtado (shope.ee) sem o código da loja e do item (…-i.loja.item) não entra na
-              conferência. O estoque fica o que você marcar.
-            </Text>
+                ? "O endereço público do link não muda. A primeira oferta é sempre a principal que o clique tenta primeiro."
+                : "Cadastre o produto da Shopee. A primeira oferta é a principal; as seguintes são os backups que assumem quando o estoque zerar."}
+            </div>
+
             <TextInput
-              label="Nome"
+              label="Nome do produto"
               value={title}
               onChange={setTitle}
-              placeholder="Sérum de vitamina C"
+              placeholder="Ex: Sérum Vitamina C 30ml"
               width="100%"
             />
-            <div className="grid grid-cols-2 gap-2">
-              <TextInput label="Preço" value={price} onChange={setPrice} placeholder="39,90" width="100%" />
-              <TextInput label="Comissão %" value={commission} onChange={setCommission} width="100%" />
+
+            <div className="grid grid-cols-2 gap-3">
+              <TextInput
+                label="Preço aproximado (R$)"
+                value={price}
+                onChange={setPrice}
+                placeholder="39,90"
+                width="100%"
+              />
+              <TextInput
+                label="Comissão estimada (%)"
+                value={commission}
+                onChange={setCommission}
+                placeholder="18"
+                width="100%"
+              />
             </div>
-            {offers.map((offer, index) => (
-              <Card key={offer.key} padding={3}>
-                <VStack gap={2}>
-                  <Text size="sm" color="secondary" weight="semibold">
-                    {index === 0 ? "Principal" : `Backup ${index}`}
-                  </Text>
-                  <Switch
-                    label={offer.inStock ? "Em estoque" : "Sem estoque"}
-                    value={offer.inStock}
-                    onChange={(next) => updateOffer(index, { inStock: next })}
-                  />
-                  <TextInput
-                    label="Loja"
-                    value={offer.shop}
-                    onChange={(value) => updateOffer(index, { shop: value })}
-                    width="100%"
-                  />
-                  <TextInput
-                    label="Link https"
-                    value={offer.url}
-                    onChange={(value) => updateOffer(index, { url: value })}
-                    width="100%"
-                  />
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant="ghost"
-                      label="Subir"
-                      isDisabled={index === 0}
-                      onClick={() => moveOffer(index, -1)}
-                    />
-                    <Button
-                      variant="ghost"
-                      label="Descer"
-                      isDisabled={index === offers.length - 1}
-                      onClick={() => moveOffer(index, 1)}
-                    />
-                    {offers.length > 1 ? (
-                      <Button
-                        variant="ghost"
-                        label="Tirar"
-                        onClick={() => setOffers((current) => current.filter((item) => item.key !== offer.key))}
+
+            <div className="border-t border-[var(--color-border)] pt-3">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-secondary)]">
+                  Lojas e Ofertas ({offers.length} de 4)
+                </span>
+                <span className="text-[11px] text-[var(--color-text-secondary)]">
+                  Ordem de tentativa do clique
+                </span>
+              </div>
+
+              <VStack gap={3}>
+                {offers.map((offer, index) => (
+                  <Card key={offer.key} padding={3}>
+                    <VStack gap={2}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[var(--color-text-accent)] uppercase">
+                          {index === 0 ? "1. Oferta Principal" : `${index + 1}. Backup ${index}`}
+                        </span>
+                        <Switch
+                          label={offer.inStock ? "Em estoque" : "Esgotado"}
+                          value={offer.inStock}
+                          onChange={(next) => updateOffer(index, { inStock: next })}
+                        />
+                      </div>
+
+                      <TextInput
+                        label="Nome da loja na Shopee"
+                        value={offer.shop}
+                        onChange={(value) => updateOffer(index, { shop: value })}
+                        placeholder="Ex: Loja Oficial Shopee"
+                        width="100%"
                       />
-                    ) : null}
-                  </div>
-                </VStack>
-              </Card>
-            ))}
-            {offers.length < 4 ? (
-              <Button variant="ghost" label="Adicionar backup" onClick={() => setOffers((current) => [...current, offerRow()])} />
-            ) : null}
+
+                      <TextInput
+                        label="Link de afiliado Shopee (https://)"
+                        value={offer.url}
+                        onChange={(value) => updateOffer(index, { url: value })}
+                        placeholder="https://shopee.com.br/produto..."
+                        width="100%"
+                      />
+
+                      <div className="flex items-center justify-between pt-1">
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            icon={<ArrowUp size={14} />}
+                            label="Subir"
+                            isDisabled={index === 0}
+                            onClick={() => moveOffer(index, -1)}
+                          />
+                          <Button
+                            variant="ghost"
+                            icon={<ArrowDown size={14} />}
+                            label="Descer"
+                            isDisabled={index === offers.length - 1}
+                            onClick={() => moveOffer(index, 1)}
+                          />
+                        </div>
+                        {offers.length > 1 ? (
+                          <Button
+                            variant="ghost"
+                            icon={<Trash2 size={14} />}
+                            label="Remover"
+                            onClick={() =>
+                              setOffers((current) => current.filter((item) => item.key !== offer.key))
+                            }
+                          />
+                        ) : null}
+                      </div>
+                    </VStack>
+                  </Card>
+                ))}
+
+                {offers.length < 4 ? (
+                  <Button
+                    variant="secondary"
+                    icon={<Plus size={16} />}
+                    label="Adicionar loja de backup"
+                    onClick={() => setOffers((current) => [...current, offerRow()])}
+                  />
+                ) : null}
+              </VStack>
+            </div>
+
             {error ? <Banner status="error" title={error} /> : null}
           </VStack>
-          <div className="flex gap-2 border-t border-border px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:justify-end">
+
+          <div className="flex items-center justify-end gap-2 border-t border-[var(--color-border)] px-4 py-3 pb-[max(1rem,env(safe-area-inset-bottom))] bg-[var(--color-surface)]">
             <Button variant="ghost" label="Cancelar" onClick={resetForm} />
             <Button
               type="submit"
               isDisabled={pending}
               isLoading={pending}
-              label={pending ? "Guardando…" : editingId ? "Salvar" : "Criar"}
+              label={pending ? "Salvando…" : editingId ? "Salvar alterações" : "Criar achadinho"}
             />
           </div>
         </form>
@@ -666,7 +849,12 @@ export function LinksPanel({
 
 export function NewLinkButton({ onClick }: { onClick: () => void }) {
   return (
-    <Button icon={<Plus size={16} aria-hidden="true" />} label="Adicionar produto" onClick={onClick} />
+    <Button
+      variant="primary"
+      icon={<Plus size={16} aria-hidden="true" />}
+      label="Novo achadinho"
+      onClick={onClick}
+    />
   );
 }
 

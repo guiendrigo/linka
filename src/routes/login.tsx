@@ -7,7 +7,7 @@ import { LoginPanel } from "@/components/linka/login-panel";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Entrar · Linka" }] }),
+  head: () => ({ meta: [{ title: "Entrar · Linka Afiliados" }] }),
   component: LoginPage,
 });
 
@@ -18,17 +18,23 @@ function LoginPage() {
 
   return (
     <AppShell account={false}>
-      <VStack gap={4} maxWidth={360} className="mx-auto mt-10 w-full">
-        <Heading level={1} type="display-2">
-          Entrar
-        </Heading>
-        <Text color="secondary">A conta é sua. Quem abre o link inteligente não precisa entrar.</Text>
-        {isPending ? (
-          <div aria-hidden="true" className="h-64 animate-pulse rounded-3xl bg-surface" />
-        ) : (
-          <LoginPanel />
-        )}
-      </VStack>
+      <div className="mx-auto mt-6 sm:mt-12 w-full max-w-sm rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
+        <VStack gap={4}>
+          <VStack gap={1}>
+            <Heading level={1} type="display-2" className="text-2xl font-bold">
+              Entrar no Linka
+            </Heading>
+            <Text color="secondary" size="sm">
+              Gerencie seus achadinhos e backups. Quem clica no link não precisa de conta.
+            </Text>
+          </VStack>
+          {isPending ? (
+            <div aria-hidden="true" className="h-64 animate-pulse rounded-2xl bg-[var(--color-background-body)]" />
+          ) : (
+            <LoginPanel />
+          )}
+        </VStack>
+      </div>
     </AppShell>
   );
 }

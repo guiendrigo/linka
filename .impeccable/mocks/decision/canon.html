@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Linka — O Padrão da Categoria</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 390px;
+      height: 844px;
+      overflow: hidden;
+      background: #fafafa;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #111827;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 16px;
+    }
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .logo {
+      font-weight: 800;
+      font-size: 18px;
+      color: #111827;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: #ff5c39; }
+    .btn-login {
+      font-size: 13px;
+      font-weight: 600;
+      color: #4b5563;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      background: #f3f4f6;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff0eb;
+      color: #c43a1f;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+    }
+    h1 span { color: #ff5c39; }
+    p {
+      font-size: 14px;
+      color: #6b7280;
+      line-height: 1.45;
+      margin-bottom: 20px;
+    }
+    .mockup-card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .mockup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .mockup-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: #f9fafb;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .status-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 9999px;
+    }
+    .status-pill.out { background: #fee2e2; color: #b91c1c; }
+    .status-pill.ok { background: #dcfce7; color: #15803d; }
+    .cta-button {
+      background: #ff5c39;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      text-align: center;
+      padding: 14px;
+      border-radius: 12px;
+      text-decoration: none;
+      display: block;
+      box-shadow: 0 4px 12px rgba(255, 92, 57, 0.25);
+    }
+    .footer-note {
+      text-align: center;
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <div class="logo"><span class="logo-dot"></span> Linka</div>
+    <a href="#" class="btn-login">Entrar</a>
+  </div>
+
+  <div class="badge">Novo para Afiliados Shopee</div>
+  <h1>O clique que nunca cai em <span>página esgotada</span>.</h1>
+  <p>Cadastre ofertas alternativas. Se a principal zerar, seus seguidores são redirecionados automaticamente para o estoque disponível.</p>
+
+  <div class="mockup-card">
+    <div class="mockup-header">
+      <span style="font-weight:700;font-size:13px;">Sérum Vitamina C 30ml</span>
+      <span style="color:#ff5c39;font-weight:700;font-size:13px;">R$ 39,90</span>
+    </div>
+    <div class="mockup-item">
+      <span>Loja Aurora (Principal)</span>
+      <span class="status-pill out">Esgotado</span>
+    </div>
+    <div class="mockup-item" style="border: 1px solid #86efac; background: #f0fdf4;">
+      <span>Loja Norte (Backup 1)</span>
+      <span class="status-pill ok">Ativo</span>
+    </div>
+  </div>
+
+  <a href="#" class="cta-button">Criar conta grátis</a>
+  <div class="footer-note">Sem necessidade de cartão &bull; Setup em 2 minutos</div>
+</body>
+</html>

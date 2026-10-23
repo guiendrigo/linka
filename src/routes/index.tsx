@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ArrowRight, CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Button } from "@astryxdesign/core/Button";
 import { Heading } from "@astryxdesign/core/Heading";
 import { Text } from "@astryxdesign/core/Text";
 import { VStack } from "@astryxdesign/core/VStack";
@@ -18,16 +20,16 @@ export const Route = createFileRoute("/")({
 
 const STEPS = [
   {
-    title: "Guardar o produto",
-    body: "A oferta principal e os backups, na ordem em que o clique deve tentar.",
+    title: "Guarde a oferta principal e os backups",
+    body: "Cadastre o link do produto na Shopee e até 3 lojas de reserva com preço e estoque.",
   },
   {
-    title: "Colar uma vez",
-    body: "O mesmo endereço no story, no grupo ou na bio. O clique cai na oferta com estoque.",
+    title: "Divulgue um único link no Story, no Grupo e na Bio",
+    body: "Cole o endereço /r/codigo onde você fala com sua audiência. Você nunca mais precisa editar o story porque a loja esgotou.",
   },
   {
-    title: "O backup entra se a principal acabar",
-    body: "Você marca o que ainda vende. Se a principal sair, o clique vai para o próximo backup.",
+    title: "O clique cai sempre na loja com estoque",
+    body: "Se a principal zerar, o Linka manda o seguidor direto para a primeira reserva disponível — e sua comissão está salva.",
   },
 ];
 
@@ -82,24 +84,34 @@ function PublicHome() {
 
   return (
     <AppShell>
-      <div className="mt-8 grid items-start gap-8 lg:mt-16 lg:grid-cols-2 lg:gap-16">
-        <VStack gap={4}>
-          <Text color="accent" weight="semibold">
-            Para quem vende na Shopee
-          </Text>
+      <div className="mt-8 grid items-start gap-8 lg:mt-14 lg:grid-cols-2 lg:gap-14">
+        <VStack gap={5}>
           <Heading level={1} type="display-1">
-            O clique não se perde quando acaba o estoque.
+            O clique não se perde quando acaba o estoque na Shopee.
           </Heading>
-          <Text color="secondary">
-            Um link seu. Se a oferta principal sair do ar, o Linka manda a pessoa para o backup — sem você
-            editar o story de novo.
+          <Text color="secondary" className="text-base sm:text-lg">
+            Um link inteligente de achadinho para Stories, WhatsApp e Bio. Se a loja principal esgotar,
+            o Linka envia seu seguidor direto para o backup com estoque — sem você ter que trocar o link de novo.
           </Text>
-          <ol className="divide-y divide-border border-y border-border">
+
+          <div className="flex flex-col items-start gap-2 pt-1">
+            <Button
+              href="/login"
+              variant="primary"
+              label="Criar meu link grátis"
+              icon={<ArrowRight size={16} aria-hidden="true" />}
+            />
+            <Text size="sm" color="secondary">
+              Gratuito no beta · Sem cartão de crédito · Setup em 1 minuto
+            </Text>
+          </div>
+
+          <ol className="mt-2 divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
             {STEPS.map((step, index) => (
               <li key={step.title} className="flex gap-4 py-4">
-                <Text color="accent" weight="semibold">
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent-muted)] text-sm font-bold text-[var(--color-text-accent)]">
                   {index + 1}
-                </Text>
+                </span>
                 <VStack gap={1}>
                   <Text weight="medium">{step.title}</Text>
                   <Text color="secondary" size="sm">
@@ -109,17 +121,33 @@ function PublicHome() {
               </li>
             ))}
           </ol>
+
+          <div className="grid grid-cols-1 gap-2 pt-1 sm:grid-cols-3">
+            <div className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-2.5">
+              <CheckCircle2 size={16} className="text-[var(--color-text-accent)] shrink-0" aria-hidden="true" />
+              <span className="text-xs text-[var(--color-text-secondary)]">Conferência Shopee automática</span>
+            </div>
+            <div className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-2.5">
+              <ShieldCheck size={16} className="text-[var(--color-text-accent)] shrink-0" aria-hidden="true" />
+              <span className="text-xs text-[var(--color-text-secondary)]">Sua comissão 100% protegida</span>
+            </div>
+            <div className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-2.5">
+              <Sparkles size={16} className="text-[var(--color-text-accent)] shrink-0" aria-hidden="true" />
+              <span className="text-xs text-[var(--color-text-secondary)]">Seguidor não precisa de conta</span>
+            </div>
+          </div>
         </VStack>
         <Bench />
       </div>
-      <Text color="secondary" className="mt-8 lg:mt-12">
-        Quem clica não precisa de conta: o endereço manda direto para a oferta com estoque. Se todas
-        acabarem, a pessoa vê que esgotou. A decisão também responde em{" "}
-        <a className="font-medium underline" href={`/api/r/${DEMO_CODE}`}>
+
+      <div className="mt-10 border-t border-[var(--color-border)] pt-6 text-xs text-[var(--color-text-secondary)]">
+        Quem clica é redirecionado via 302 direto para a oferta em estoque na Shopee. A decisão também responde como API pública em{" "}
+        <a className="font-medium underline hover:text-[var(--color-text-primary)]" href={`/api/r/${DEMO_CODE}`}>
           /api/r/{DEMO_CODE}
         </a>
         .
-      </Text>
+      </div>
+
       {foundation ? <FoundationCheck /> : null}
     </AppShell>
   );

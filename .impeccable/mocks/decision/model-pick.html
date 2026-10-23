@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Linka — Etiqueta de Reentrega</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 390px;
+      height: 844px;
+      overflow: hidden;
+      background: #c8a27a;
+      font-family: 'Inter', sans-serif;
+      color: #121212;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      background-image: radial-gradient(#b08b65 1px, transparent 0);
+      background-size: 16px 16px;
+    }
+    .header-kraft {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      color: #3b2a1a;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .thermal-sheet {
+      background: #fbfbf8;
+      border: 1px solid #dcdad0;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      flex: 1;
+    }
+    .barcode {
+      font-family: 'Share Tech Mono', monospace;
+      letter-spacing: 4px;
+      font-size: 20px;
+      text-align: center;
+      border-bottom: 2px dashed #121212;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+      font-weight: 900;
+    }
+    .doc-type {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      color: #666;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+    .manifest-box {
+      border: 1px solid #121212;
+      padding: 10px;
+      margin-bottom: 12px;
+      background: #f4f4ee;
+    }
+    .prod-row {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 800;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .route-log {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .log-item {
+      padding: 8px 10px;
+      border-left: 3px solid #121212;
+      background: #fff;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      position: relative;
+    }
+    .log-item.failed {
+      border-left-color: #c8281e;
+      background: #fff5f5;
+    }
+    .stamp-failed {
+      position: absolute;
+      right: 8px;
+      top: 6px;
+      border: 2px solid #c8281e;
+      color: #c8281e;
+      font-size: 11px;
+      font-weight: 900;
+      padding: 1px 4px;
+      transform: rotate(4deg);
+      text-transform: uppercase;
+    }
+    .log-item.rerouted {
+      border-left-color: #121212;
+      background: #eef7ee;
+      font-weight: 700;
+    }
+    .badge-reroute {
+      color: #15803d;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .cta-button {
+      margin-top: auto;
+      background: #121212;
+      color: #fff;
+      text-align: center;
+      padding: 14px;
+      font-weight: 900;
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-decoration: none;
+      display: block;
+      border: 2px solid #121212;
+    }
+    .footer-stamp {
+      margin-top: 10px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      color: #555;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="header-kraft">
+    <span>ROTEAMENTO INTELIGENTE</span>
+    <span>MOD. CORREIOS / LOG</span>
+  </div>
+
+  <div class="thermal-sheet">
+    <div class="barcode">||| | ||||| || |||||| |</div>
+    <div class="doc-type">AVISO DE REENTREGA DE CLIQUE</div>
+    <h1>Se a 1ª tentativa esgotar, a entrega não para.</h1>
+
+    <div class="manifest-box">
+      <div class="prod-row">
+        <span>Sérum Vitamina C 30ml</span>
+        <span>R$ 39,90</span>
+      </div>
+      <div style="font-size:11px;color:#555;">Link único para Bio e Story do Afiliado</div>
+    </div>
+
+    <div class="route-log">
+      <div class="log-item failed">
+        <div style="color:#666;font-size:10px;">1ª TENTATIVA: LOJA AURORA</div>
+        <div style="text-decoration: line-through;">https://shopee.com.br/...</div>
+        <span class="stamp-failed">SEM ESTOQUE</span>
+      </div>
+
+      <div class="log-item rerouted">
+        <div class="badge-reroute">&check; 2ª TENTATIVA: LOJA NORTE (EM ESTOQUE)</div>
+        <div>Destino com estoque ativo &rarr;</div>
+      </div>
+
+      <div class="log-item" style="border-left-color: #aaa; color:#777;">
+        <div style="font-size:10px;">3ª TENTATIVA: LOJA LESTE</div>
+        <div>Reserva técnica cadastrada</div>
+      </div>
+    </div>
+
+    <a href="#" class="cta-button">Gerar Minha Etiqueta</a>
+    <div class="footer-stamp">LINKA SISTEMA DE CONTINGÊNCIA SHOPEE &bull; BRL</div>
+  </div>
+</body>
+</html>
