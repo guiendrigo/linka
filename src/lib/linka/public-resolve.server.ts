@@ -5,9 +5,10 @@ export async function decideStoredVisit(
   code: string,
   opts: { on?: string } = {},
 ): Promise<PublicVisit> {
-  const { findStoredLink, freshenStoredStock } = await import("./store.server.ts");
+  const { findStoredLink } = await import("./store.server.ts");
+  const { freshenForCode } = await import("./stock-freshen.server.ts");
   return decidePublicVisit(code, opts, {
-    freshen: freshenStoredStock,
+    freshen: freshenForCode,
     findStored: findStoredLink,
     findDemo: findLink,
   });

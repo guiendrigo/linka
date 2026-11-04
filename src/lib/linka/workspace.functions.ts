@@ -55,8 +55,8 @@ export const refreshStock = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((data: unknown) => ({ force: asRecord(data).force === true }))
   .handler(async ({ context, data }): Promise<StockReport> => {
-    const { checkStock } = await import("@/lib/linka/store.server");
-    return checkStock(context.userId, { force: data.force });
+    const { freshenForUser } = await import("@/lib/linka/stock-freshen.server");
+    return freshenForUser(context.userId, { force: data.force });
   });
 
 export const removeProduct = createServerFn({ method: "POST" })
