@@ -23,6 +23,7 @@ import {
   type PlanKind,
   type PlanPackageView,
 } from "@/lib/linka/purchases";
+import { syncUserPlan } from "@/lib/linka/workspace.functions";
 
 type PurchasesStatus = "idle" | "loading" | "ready" | "error";
 
@@ -74,6 +75,11 @@ function usePurchasesSession(
     setSession(next);
     setStatus(next ? "ready" : "idle");
     setError(null);
+    if (next) {
+      void syncUserPlan({ data: { isPro: next.isPro } }).catch(() => {
+        // O teto do free ainda vale pelo que o servidor já conhece.
+      });
+    }
   }, []);
 
   const load = useCallback(

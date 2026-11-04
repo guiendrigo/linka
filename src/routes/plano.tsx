@@ -19,7 +19,7 @@ function PlanoPage() {
     <ConsoleShell
       current="plano"
       title="Plano e Assinatura"
-      subtitle="Turbine suas comissões na Shopee com links inteligentes que nunca ficam sem estoque."
+      subtitle="O clique cai no backup. Anual e mensal são a cadência do Pro."
     >
       <PlanPanel />
     </ConsoleShell>

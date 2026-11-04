@@ -11,7 +11,6 @@ import { FoundationCheck } from "@/components/linka/foundation-check";
 import { AppShell } from "@/components/linka/shell";
 import { useWorkspace } from "@/components/linka/use-workspace";
 import { LinksPanel, NewLinkButton, WorkspacePending } from "@/components/linka/workspace";
-import { DEMO_CODE } from "@/lib/linka/catalog";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -19,16 +18,16 @@ export const Route = createFileRoute("/")({
 
 const STEPS = [
   {
-    title: "Guarde a oferta principal e os backups",
-    body: "Cadastre o link do produto na Shopee e até 3 lojas de reserva com preço e estoque.",
+    title: "O story de ontem ainda aponta pra esgotado",
+    body: "Quem clica cai numa loja vazia. Você perde o clique e a comissão, e ainda reedita o Story no meio do expediente.",
   },
   {
-    title: "Divulgue um único link no Story, no Grupo e na Bio",
-    body: "Cole o endereço /r/codigo onde você fala com sua audiência. Você nunca mais precisa editar o story porque a loja esgotou.",
+    title: "Cole um único /r no Story, no grupo e na bio",
+    body: "Guarde a oferta principal e até 3 backups. O endereço não muda quando a loja zera.",
   },
   {
-    title: "O clique cai sempre na loja com estoque",
-    body: "Se a principal zerar, o Linka manda o seguidor direto para a primeira reserva disponível — e sua comissão está salva.",
+    title: "O clique cai na loja com estoque",
+    body: "Se a principal esgotar, o seguidor vai para a primeira reserva disponível. Sem você trocar o link.",
   },
 ];
 
@@ -48,14 +47,20 @@ function LinksHome() {
     <ConsoleShell
       current="links"
       title="Links"
-      subtitle="A página da bio e os links de cada produto."
+      subtitle={
+        data && data.products.length === 0
+          ? "Uma ação: montar o link e colar no Story."
+          : "Cole o /r no Story. O clique cai no backup."
+      }
       action={
-        <NewLinkButton
-          onClick={() => {
-            setComposing(true);
-            setComposeNonce((n) => n + 1);
-          }}
-        />
+        data && data.products.length > 0 ? (
+          <NewLinkButton
+            onClick={() => {
+              setComposing(true);
+              setComposeNonce((n) => n + 1);
+            }}
+          />
+        ) : undefined
       }
     >
       {!data ? (
@@ -91,15 +96,18 @@ function PublicHome() {
               O clique não se perde quando acaba o estoque na Shopee
             </Heading>
             <Text color="secondary" className="max-w-xl text-base sm:text-lg">
-              Um link de achadinho para Stories, WhatsApp e Bio. Se a loja principal esgotar, o
-              Linka envia o seguidor para o backup com estoque, sem você trocar o link.
+              Pra quem posta achadinho no Story, no grupo e na bio. Se a loja principal esgotar, o
+              Linka manda o seguidor para o backup com estoque — sem você reeditar o Story.
+            </Text>
+            <Text color="secondary" className="max-w-xl text-sm">
+              O story de ontem ainda aponta pra esgotado.
             </Text>
           </VStack>
 
           <div className="flex flex-col items-start gap-2">
-            <Button href="/login" variant="primary" label="Criar meu link" />
+            <Button href="/login" variant="primary" label="Montar meu link agora" />
             <Text size="sm" color="secondary">
-              Beta, sem cartão
+              2 min, sem cartão
             </Text>
           </div>
 
@@ -120,13 +128,6 @@ function PublicHome() {
           </ol>
         </VStack>
         <Bench />
-      </div>
-
-      <div className="mt-16 border-t border-[var(--color-border)] pt-6 font-mono text-xs text-[var(--color-text-secondary)]">
-        Quem clica segue 302 para a oferta em estoque. A mesma decisão em{" "}
-        <a className="underline hover:text-[var(--color-text-primary)]" href={`/api/r/${DEMO_CODE}`}>
-          /api/r/{DEMO_CODE}
-        </a>
       </div>
 
       {foundation ? <FoundationCheck /> : null}

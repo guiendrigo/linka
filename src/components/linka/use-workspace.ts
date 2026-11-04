@@ -12,15 +12,30 @@ export function useWorkspace() {
     const userId = user?.id;
     if (!userId) return;
     let cancelled = false;
-    getWorkspace()
-      .then((next) => {
-        if (!cancelled) setData(next);
-      })
-      .catch(() => {
-        if (!cancelled) setError("Não deu para carregar a sua conta.");
-      });
+
+    function load() {
+      getWorkspace()
+        .then((next) => {
+          if (!cancelled) {
+            setData(next);
+            setError(null);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setError("Não deu para carregar a sua conta.");
+        });
+    }
+
+    load();
+    function onVisible() {
+      if (document.visibilityState === "visible") load();
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
     return () => {
       cancelled = true;
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
     };
   }, [user?.id]);
 

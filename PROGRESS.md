@@ -12,7 +12,8 @@ Produção é a Magalu (Docker, SQLite). O preview Grok usa banco embutido. A re
 - Quem entra vê a conta em casca de console: Links na barra, gaveta no celular. Plano só aparece com `VITE_BILLING_ENABLED=true`. A home pública, o link `/r/...` e a bio `/p/...` ficam sem essa barra.
 - Conta por Google, X ou e-mail e senha. Não há magic link.
 - Cada pessoa só vê os próprios produtos. O link público não pede conta.
-- Quem entra ganha uma página de bio em `/p/codigo` (código opaco, não muda). Título, descrição e foto ficam no topo de Links; cada produto pode ficar visível ou oculto. O visitante vê título, preço e **Ver oferta**, sem comissão. Produto esgotado some da bio.
+- Quem entra ganha uma página de bio em `/p/codigo` (código opaco, não muda). Enquanto não há achadinho, a bio não compete com o primeiro `/r`. Depois do cadastro, título, descrição e foto ficam no topo de Links; cada produto pode ficar visível ou oculto. O visitante vê título, preço e **Ver oferta**, sem comissão. Produto esgotado some da bio.
+- Conta vazia: uma ação (montar o link), o simulador do sérum continua na tela, e dá para abrir o rascunho do exemplo. Progresso começa em 20% até copiar o `/r`.
 
 ### Estoque (beta: na mão)
 
@@ -41,6 +42,7 @@ Produção é a Magalu (Docker, SQLite). O preview Grok usa banco embutido. A re
 - `?on=` só mexe no simulador (`serum-c`). Produto gravado ignora o parâmetro.
 - `/api/r/codigo` usa a mesma conferência que `/r/codigo` e devolve a decisão em JSON, sem comissão nem segredo.
 - A resposta não fica gravada no celular: a próxima visita escolhe de novo.
+- Cada produto gravado mostra o último destino de uma visita real (loja, backup ou esgotado). Não há contagem de cliques.
 
 ### Operação Magalu
 
@@ -50,9 +52,10 @@ Produção é a Magalu (Docker, SQLite). O preview Grok usa banco embutido. A re
 ### Plano
 
 - Código da cobrança existe (RevenueCat Web SDK, Anual/Mensal, entitlement `linka_pro`).
-- Flag `VITE_BILLING_ENABLED`: só `"true"` liga a tela **Plano**, o SDK e o checkout. Sem a flag, `/plano` volta para a home.
+- Flag `VITE_BILLING_ENABLED`: só `"true"` liga a tela **Plano**, o SDK, o checkout e o teto da conta grátis. Sem a flag, `/plano` volta para a home e a conta não tem limite (beta fechado).
 - Hoje a flag está desligada: discovery não cobra.
-- Ainda não há limite do que a conta gratuita pode guardar.
+- Com a flag ligada, o eixo é quantidade de achadinhos: grátis 1, Pro 10, ilimitado só como âncora (sem SKU). Anual e Mensal são cadência do mesmo Pro. O upgrade aparece no 2º produto.
+- Conversas no ICP: `bash scripts/icp-pix.sh`. Notas em `.local/icp-pix.md` (fora do git). Sem PIX ou recusa explícita, não entra feature nova no core.
 
 ## O que ainda não existe
 
@@ -64,8 +67,8 @@ Produção é a Magalu (Docker, SQLite). O preview Grok usa banco embutido. A re
 
 ### Etapa 7 — limite da conta gratuita
 
-- A cobrança está no código, atrás de `VITE_BILLING_ENABLED=true`.
-- Ainda não há teto do que a conta gratuita pode guardar ou consultar.
+- Feito no código, atrás de `VITE_BILLING_ENABLED=true`: 1 achadinho no grátis, 10 no Pro. Sem a flag, o beta continua sem teto.
+- Preço de verdade ainda depende das conversas PIX (`scripts/icp-pix.sh`), não de A/B.
 
 ### Etapa 8 — painel
 
@@ -89,7 +92,7 @@ Produção é a Magalu (Docker, SQLite). O preview Grok usa banco embutido. A re
 
 ## Ordem sugerida
 
-1. Busca conversacional, para montar o link sem colar URL na mão.
-2. Painel curto do que está no ar e do que esgotou.
-3. PWA, para usar no celular como app.
-4. Pagamento, quando o uso gratuito precisar de limite.
+1. Dez conversas no ICP (`bash scripts/icp-pix.sh`) até PIX ou recusa explícita.
+2. Primeiro `/r` colado no Story — caminho já enxuto nesta rodada.
+3. Ligar cobrança com o teto do grátis, quando houver quem pague.
+4. Fora até o core cobrar: busca NLP, PWA, painel rico, handle de bio.

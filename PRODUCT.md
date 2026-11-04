@@ -56,6 +56,7 @@ Success: the affiliate pastes a link once — story, group, or bio — and never
 ## Evidence on Hand
 
 - Working product and a live demo: the `serum-c` simulator on the home page and `/r/serum-c`, `/api/r/serum-c`.
+- ICP interview script (no results yet): `bash scripts/icp-pix.sh`. Notes stay in `.local/` and are not evidence.
 - Status and backlog: `PROGRESS.md`; specs under `openspec/specs/`.
 - Screenshots: `screenshots/`, `image.png` (mobile Links workspace).
 - Share card: `public/og.jpg`, identity in `src/lib/og/site.json`.

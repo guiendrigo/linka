@@ -135,39 +135,61 @@ export function PlanPanel() {
     <VStack gap={5} maxWidth={720} className="w-full">
       {error ? <Banner status="error" title={error} /> : null}
 
-      {/* Cartão de destaque Linka Pro */}
       <Card padding={5} className="border border-[var(--color-border)] bg-[var(--color-surface)]">
         <VStack gap={4}>
-          <HStack gap={3} vAlign="center" justify="between" wrap="wrap">
-            <HStack gap={2} vAlign="center">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-[var(--color-accent-muted)] text-[var(--color-text-accent)]">
-                <CreditCard className="size-5" aria-hidden="true" />
-              </div>
-              <VStack gap={0}>
-                <Heading level={2} className="text-lg font-bold sm:text-xl">
-                  Linka Pro
-                </Heading>
-                <Text size="sm" color="secondary">
-                  Proteção máxima de comissões para afiliados da Shopee
+          <VStack gap={1}>
+            <Heading level={2} className="text-lg font-medium sm:text-xl">
+              O clique cai no backup
+            </Heading>
+            <Text size="sm" color="secondary">
+              Quando a principal esgota, o seguidor vai para a primeira loja com estoque. Você não
+              reedita o Story.
+            </Text>
+          </VStack>
+
+          <VStack gap={2}>
+            <div className="flex items-start justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-background-body)] p-3">
+              <VStack gap={0.5}>
+                <Text weight="medium" size="sm">
+                  Grátis
+                </Text>
+                <Text size="xsm" color="secondary">
+                  1 achadinho — o suficiente para colar o /r uma vez e ver o hop.
                 </Text>
               </VStack>
-            </HStack>
-            <Badge variant="orange" label="Recomendado para Afiliados" />
-          </HStack>
-
-          <Text color="secondary" className="text-sm sm:text-base leading-relaxed">
-            Não deixe seus seguidores caírem em links de produtos esgotados. Com o <strong>Linka Pro</strong>,
-            você cadastra suas lojas de reserva e nossa checagem contínua garante que quem clica sempre
-            encontre estoque disponível para comprar.
-          </Text>
+              <Badge variant="neutral" label="Agora" />
+            </div>
+            <div className="flex items-start justify-between gap-3 rounded-xl border-2 border-[var(--color-accent)] bg-[var(--color-background-body)] p-3">
+              <VStack gap={0.5}>
+                <Text weight="medium" size="sm">
+                  Pro
+                </Text>
+                <Text size="xsm" color="secondary">
+                  Até 10 achadinhos. O plano que a afiliada que já vende precisa.
+                </Text>
+              </VStack>
+              <Badge variant="orange" label="O que vendemos" />
+            </div>
+            <div className="flex items-start justify-between gap-3 rounded-xl border border-[var(--color-border)] p-3">
+              <VStack gap={0.5}>
+                <Text weight="medium" size="sm">
+                  Ilimitado
+                </Text>
+                <Text size="xsm" color="secondary">
+                  Sem teto de achadinhos. Âncora — ainda não está à venda.
+                </Text>
+              </VStack>
+              <Badge variant="neutral" label="Âncora" />
+            </div>
+          </VStack>
 
           <div className="grid gap-2.5 sm:grid-cols-2 pt-1">
             <div className="flex items-start gap-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-background-body)] p-3">
               <CheckCircle2 className="size-4 shrink-0 text-[var(--color-text-accent)] mt-0.5" aria-hidden="true" />
               <VStack gap={0.5}>
-                <Text weight="medium" size="sm">Nunca perca vendas</Text>
+                <Text weight="medium" size="sm">O clique cai no backup</Text>
                 <Text size="xsm" color="secondary">
-                  Redirecionamento automático e instantâneo para a reserva em estoque.
+                  Primeiro em estoque ganha. Esgotado de verdade, a página diz isso.
                 </Text>
               </VStack>
             </div>
@@ -175,9 +197,9 @@ export function PlanPanel() {
             <div className="flex items-start gap-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-background-body)] p-3">
               <Zap className="size-4 shrink-0 text-[var(--color-text-accent)] mt-0.5" aria-hidden="true" />
               <VStack gap={0.5}>
-                <Text weight="medium" size="sm">Checagem contínua na Shopee</Text>
+                <Text weight="medium" size="sm">Conferência na Shopee</Text>
                 <Text size="xsm" color="secondary">
-                  Verificação automática direto na API do catálogo antes de cada visita.
+                  Catálogo a cada visita, com teto de consultas.
                 </Text>
               </VStack>
             </div>
@@ -195,9 +217,9 @@ export function PlanPanel() {
             <div className="flex items-start gap-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-background-body)] p-3">
               <CreditCard className="size-4 mt-0.5 shrink-0 text-[var(--color-text-secondary)]" aria-hidden="true" />
               <VStack gap={0.5}>
-                <Text weight="medium" size="sm">Links e bio sem limites</Text>
+                <Text weight="medium" size="sm">Anual ou mensal</Text>
                 <Text size="xsm" color="secondary">
-                  Vitrine na sua bio (/p/...) que oculta produtos sem estoque automaticamente.
+                  Mesmo Pro. Só muda a cadência do pagamento.
                 </Text>
               </VStack>
             </div>
@@ -205,7 +227,10 @@ export function PlanPanel() {
         </VStack>
       </Card>
 
-      {/* Cartões de planos: Anual (Destaque) e Mensal */}
+      <Text size="sm" color="secondary">
+        Anual e mensal não são planos diferentes. São a forma de pagar o Pro.
+      </Text>
+
       <div className="grid gap-4 sm:grid-cols-2">
         <PlanCard
           pkg={packages.anual}
@@ -350,7 +375,7 @@ export function PlanCard({
         <VStack gap={2}>
           <div className="flex items-center gap-2">
             <Check className="size-4 shrink-0 text-[var(--color-text-accent)]" aria-hidden="true" />
-            <Text size="xsm">Links inteligentes ilimitados</Text>
+            <Text size="xsm">Até 10 achadinhos no Pro</Text>
           </div>
           <div className="flex items-center gap-2">
             <Check className="size-4 shrink-0 text-[var(--color-text-accent)]" aria-hidden="true" />
@@ -378,7 +403,7 @@ export function PlanCard({
           width="100%"
           variant={featured ? "primary" : "secondary"}
           isDisabled={disabled || !pkg || pending}
-          label={isAnnual ? "Assinar plano anual" : "Assinar plano mensal"}
+          label={isAnnual ? "Pagar Pro por ano" : "Pagar Pro por mês"}
           onClick={() => void onPick(kind)}
         />
       </div>

@@ -9,6 +9,10 @@ import {
   type PhotoMime,
 } from "./bio.ts";
 import { productCode, type CleanProduct } from "./input.ts";
+import { parseLastVisitRole, visitStampFromPublic, type LastVisit } from "./last-visit.ts";
+import { productCap, productCapError, type PlanTier } from "./plans.ts";
+import type { PublicVisit } from "./public-resolve.ts";
+import { billingEnabled } from "./purchases.ts";
 import { STOCK_FRESH_MS } from "./shopee.ts";
 import { resolveAffiliateCredential } from "./shopee/credentials.server.ts";
 import type { SmartLink } from "./types.ts";
@@ -32,6 +36,7 @@ export type WorkspaceProduct = {
   offers: WorkspaceOffer[];
   status: ProductListStatus;
   destinationTitle: string;
+  lastVisit: LastVisit | null;
 };
 
 export type BioPageView = {
@@ -46,6 +51,8 @@ export type WorkspaceView = {
   bio: BioPageView;
   pollMs: number;
   products: WorkspaceProduct[];
+  planTier: PlanTier;
+  productCap: number | null;
 };
 
 export type PublicBioPage = {
@@ -79,6 +86,9 @@ type ProductRow = {
   in_stock: unknown;
   position: number | string | null;
   checked_at: unknown;
+  last_visit_at: unknown;
+  last_visit_role: unknown;
+  last_visit_shop: unknown;
 };
 
 function asBool(value: unknown): boolean {
@@ -95,6 +105,14 @@ function asIso(value: unknown): string | null {
   return null;
 }
 
+function lastVisitFromRow(row: ProductRow): LastVisit | null {
+  const at = asIso(row.last_visit_at);
+  const role = parseLastVisitRole(row.last_visit_role);
+  if (!at || !role) return null;
+  const shop = typeof row.last_visit_shop === "string" ? row.last_visit_shop.trim() : "";
+  return { at, role, shop: shop || null };
+}
+
 function groupProducts(rows: ProductRow[]): WorkspaceProduct[] {
   type Grouped = Omit<WorkspaceProduct, "status" | "destinationTitle">;
   const products: Grouped[] = [];
@@ -108,6 +126,7 @@ function groupProducts(rows: ProductRow[]): WorkspaceProduct[] {
         priceCents: asNumber(row.price_cents),
         commissionPct: asNumber(row.commission_pct),
         bioVisible: row.bio_visible == null ? true : asBool(row.bio_visible),
+        lastVisit: lastVisitFromRow(row),
         offers: [],
       };
       products.push(product);
@@ -127,6 +146,7 @@ function groupProducts(rows: ProductRow[]): WorkspaceProduct[] {
 
 const productSelect = `
   select p.id, p.code, p.title, p.price_cents, p.commission_pct, p.bio_visible,
+         p.last_visit_at, p.last_visit_role, p.last_visit_shop,
          o.id as offer_id, o.shop, o.url, o.in_stock, o.position, o.checked_at
   from products p
   left join offers o on o.product_id = p.id
@@ -138,11 +158,14 @@ export async function loadWorkspace(userId: string): Promise<WorkspaceView> {
     `${productSelect} where p.user_id = $1 order by p.created_at desc, o.position asc`,
     [userId],
   );
+  const planTier = await readPlanTier(userId);
   return {
     stock: { automatic: resolveAffiliateCredential(userId) != null },
     bio: await ensureBioPage(userId),
     pollMs: STOCK_FRESH_MS,
     products: groupProducts(listed),
+    planTier,
+    productCap: productCap({ billingEnabled, isPro: planTier === "pro" }),
   };
 }
 
@@ -301,6 +324,7 @@ function asBytes(value: unknown): Uint8Array | null {
 }
 
 export async function createProduct(userId: string, input: CleanProduct): Promise<WorkspaceProduct> {
+  await assertProductQuota(userId);
   const sql = await getSql();
   const id = crypto.randomUUID();
   let code = productCode(input.title);
@@ -406,6 +430,50 @@ export async function setOfferStock(userId: string, offerId: string, inStock: bo
     returning id
   `;
   if (updated.length === 0) throw new Error("Oferta não encontrada.");
+}
+
+export async function recordLastVisit(code: string, visit: PublicVisit): Promise<void> {
+  const stamp = visitStampFromPublic(visit);
+  if (!stamp) return;
+  const sql = await getSql();
+  const at = new Date().toISOString();
+  await sql`
+    update products
+    set last_visit_at = ${at}, last_visit_role = ${stamp.role}, last_visit_shop = ${stamp.shop}
+    where code = ${code}
+  `;
+}
+
+export async function savePlanTier(userId: string, isPro: boolean): Promise<PlanTier> {
+  const sql = await getSql();
+  const tier: PlanTier = isPro ? "pro" : "free";
+  const updatedAt = new Date().toISOString();
+  await sql`
+    insert into user_plans (user_id, tier, updated_at)
+    values (${userId}, ${tier}, ${updatedAt})
+    on conflict (user_id) do update set tier = ${tier}, updated_at = ${updatedAt}
+  `;
+  return tier;
+}
+
+async function readPlanTier(userId: string): Promise<PlanTier> {
+  const sql = await getSql();
+  const rows = await sql<{ tier: string }>`select tier from user_plans where user_id = ${userId}`;
+  return rows[0]?.tier === "pro" ? "pro" : "free";
+}
+
+async function assertProductQuota(userId: string): Promise<void> {
+  const isPro = (await readPlanTier(userId)) === "pro";
+  const cap = productCap({ billingEnabled, isPro });
+  if (cap == null) return;
+  const sql = await getSql();
+  const rows = await sql<{ n: number | string }>`
+    select count(*) as n from products where user_id = ${userId}
+  `;
+  const count = asNumber(rows[0]?.n ?? 0);
+  if (count >= cap) {
+    throw new Error(productCapError({ isPro, cap }));
+  }
 }
 
 export async function findStoredLink(code: string): Promise<SmartLink | null> {

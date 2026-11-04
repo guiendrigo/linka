@@ -21,9 +21,15 @@ import { Text } from "@astryxdesign/core/Text";
 import { TextArea } from "@astryxdesign/core/TextArea";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { VStack } from "@astryxdesign/core/VStack";
+import { Bench } from "@/components/linka/bench";
 import { HopNow } from "@/components/linka/hop-now";
 import { SidePanel } from "@/components/linka/side-panel";
+import { usePurchases } from "@/components/linka/use-purchases";
 import { PHOTO_MAX_BYTES } from "@/lib/linka/bio";
+import { DEMO_CODE, findLink } from "@/lib/linka/catalog";
+import { lastVisitCopy } from "@/lib/linka/last-visit";
+import { canAddProduct, productCap } from "@/lib/linka/plans";
+import { billingEnabled } from "@/lib/linka/purchases";
 import { formatBrl } from "@/lib/linka/resolve";
 import { centsToBrlInput, type OfferDraft } from "@/lib/linka/input";
 import { previewPathPrefix } from "@/lib/preview-path-prefix";
@@ -37,6 +43,38 @@ import {
   saveBioPagePhoto,
   setBioVisible,
 } from "@/lib/linka/workspace.functions";
+
+const PASTE_CHANNEL_KEY = "linka-paste-channel";
+const COPIED_CODES_KEY = "linka-copied-codes";
+const PASTE_CHANNELS = [
+  { id: "story", label: "Story" },
+  { id: "grupo", label: "Grupo" },
+  { id: "bio", label: "Bio" },
+] as const;
+
+type PasteChannel = (typeof PASTE_CHANNELS)[number]["id"];
+
+function readCopiedCodes(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.sessionStorage.getItem(COPIED_CODES_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function rememberCopied(code: string) {
+  const next = Array.from(new Set([...readCopiedCodes(), code]));
+  window.sessionStorage.setItem(COPIED_CODES_KEY, JSON.stringify(next));
+}
+
+function activationPct(productCount: number, copied: boolean): number {
+  if (copied) return 100;
+  if (productCount > 0) return 60;
+  return 20;
+}
 
 type OfferRow = OfferDraft & { key: string };
 
@@ -230,6 +268,80 @@ function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
+function ActivationBar({ pct }: { pct: number }) {
+  return (
+    <VStack gap={1}>
+      <Text size="xsm" color="secondary">
+        {pct}% do caminho até colar o /r no Story
+      </Text>
+      <div
+        className="h-1 w-full overflow-hidden rounded-full bg-[var(--color-border)]"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={pct}
+      >
+        <div
+          className={`h-full rounded-full bg-[var(--color-accent)] ${
+            pct >= 100 ? "w-full" : pct >= 60 ? "w-3/5" : "w-1/5"
+          }`}
+        />
+      </div>
+    </VStack>
+  );
+}
+
+function ActivationEmpty({
+  onCompose,
+  onDemoDraft,
+}: {
+  onCompose: (channel?: PasteChannel) => void;
+  onDemoDraft: () => void;
+}) {
+  return (
+    <VStack gap={4}>
+      <ActivationBar pct={20} />
+      <Card padding={6}>
+        <VStack gap={4}>
+          <VStack gap={2}>
+            <Heading level={2} className="text-lg font-medium">
+              Monte o link e cole no Story
+            </Heading>
+            <Text color="secondary" className="max-w-md text-sm">
+              Uma ação nesta tela. A bio espera o primeiro /r. Marque onde você cola o
+              achadinho e cadastre a principal com um backup.
+            </Text>
+          </VStack>
+          <VStack gap={2}>
+            <Text size="sm" weight="medium">
+              Onde você cola o link?
+            </Text>
+            <div className="flex flex-wrap gap-2">
+              {PASTE_CHANNELS.map((channel) => (
+                <Button
+                  key={channel.id}
+                  variant="secondary"
+                  label={channel.label}
+                  onClick={() => onCompose(channel.id)}
+                />
+              ))}
+            </div>
+          </VStack>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Button
+              icon={<Plus size={16} aria-hidden="true" />}
+              label="Montar meu primeiro link"
+              onClick={() => onCompose()}
+            />
+            <Button variant="ghost" label="Usar o sérum de exemplo" onClick={onDemoDraft} />
+          </div>
+        </VStack>
+      </Card>
+      <Bench />
+    </VStack>
+  );
+}
+
 export function LinksPanel({
   bio,
   products,
@@ -261,6 +373,12 @@ export function LinksPanel({
   const [checking, setChecking] = useState(false);
   const [checkNote, setCheckNote] = useState<string | null>(null);
   const [checkAlert, setCheckAlert] = useState(false);
+  const [justCreated, setJustCreated] = useState<string | null>(null);
+  const [copiedCodes, setCopiedCodes] = useState<string[]>([]);
+  const [capHit, setCapHit] = useState(false);
+  const { isPro } = usePurchases();
+  const cap = productCap({ billingEnabled, isPro });
+  const canAdd = canAddProduct(products.length, cap);
 
   useEffect(() => {
     if (!canCheck || products.length === 0) return;
@@ -287,10 +405,20 @@ export function LinksPanel({
   }, [composeNonce]);
 
   useEffect(() => {
+    setCopiedCodes(readCopiedCodes());
+  }, []);
+
+  useEffect(() => {
     if (!copied) return;
     const id = window.setTimeout(() => setCopied(null), 1600);
     return () => window.clearTimeout(id);
   }, [copied]);
+
+  useEffect(() => {
+    if (!composing || editingId || canAdd) return;
+    onComposingChange(false);
+    setCapHit(true);
+  }, [canAdd, composing, editingId, onComposingChange]);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -311,6 +439,10 @@ export function LinksPanel({
           ? products.map((item) => (item.id === product.id ? product : item))
           : [product, ...products],
       });
+      if (!editingId) {
+        setJustCreated(product.code);
+        void copyLink(product.code);
+      }
       resetForm();
     } catch (err) {
       setError(messageOf(err));
@@ -358,6 +490,8 @@ export function LinksPanel({
     try {
       await navigator.clipboard.writeText(`${window.location.origin}${prefix}/r/${code}`);
       setCopied(code);
+      rememberCopied(code);
+      setCopiedCodes(readCopiedCodes());
     } catch {
       setCopied(null);
     }
@@ -379,10 +513,77 @@ export function LinksPanel({
     }
   }
 
+  function beginCompose(channel?: PasteChannel) {
+    if (!canAdd) {
+      setCapHit(true);
+      return;
+    }
+    if (channel) window.sessionStorage.setItem(PASTE_CHANNEL_KEY, channel);
+    setEditingId(null);
+    setError(null);
+    onComposingChange(true);
+  }
+
+  function fillDemoDraft() {
+    const seed = findLink(DEMO_CODE);
+    if (!seed) {
+      beginCompose();
+      return;
+    }
+    if (!canAdd) {
+      setCapHit(true);
+      return;
+    }
+    setEditingId(null);
+    setTitle(seed.title);
+    setPrice(centsToBrlInput(seed.priceCents));
+    setCommission(String(seed.commissionPct));
+    setOffers(
+      seed.offers.map((offer) =>
+        offerRow({ shop: offer.shop, url: offer.url, inStock: offer.inStock }),
+      ),
+    );
+    setError(null);
+    onComposingChange(true);
+  }
+
+  const hasCopied = products.some((item) => copiedCodes.includes(item.code));
+  const progress = activationPct(products.length, hasCopied);
+  const publicPrefix =
+    typeof window === "undefined"
+      ? ""
+      : (previewPathPrefix(window.location.hostname, window.location.pathname) ?? "");
+
   return (
     <VStack gap={4}>
-      <BioBlock bio={bio} onChange={(next) => onChange({ bio: next })} />
+      {products.length > 0 ? <BioBlock bio={bio} onChange={(next) => onChange({ bio: next })} /> : null}
 
+      {products.length > 0 && progress < 100 ? <ActivationBar pct={progress} /> : null}
+
+      {justCreated ? (
+        <Banner
+          status="success"
+          title={`Cole /r/${justCreated} no Story`}
+          description="Esse é o valor: um endereço que não precisa reeditar quando a loja zera."
+        />
+      ) : null}
+
+      {capHit && billingEnabled ? (
+        <VStack gap={2}>
+          <Banner
+            status="warning"
+            title={isPro ? "O Pro guarda até 10 achadinhos" : "Você tentou o 2º achadinho"}
+            description={
+              isPro
+                ? "Esse é o teto deste plano."
+                : "A conta grátis guarda 1. Ative o Pro para não perder o backup extra."
+            }
+          />
+          {!isPro ? <Button href="/plano" label="Ativar Pro" /> : null}
+        </VStack>
+      ) : null}
+
+      {products.length > 0 ? (
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <Clock size={16} className="shrink-0 text-[var(--color-text-secondary)]" aria-hidden="true" />
@@ -412,26 +613,12 @@ export function LinksPanel({
           />
         ) : null}
       </div>
+      ) : null}
 
       {!composing && error ? <Banner status="error" title={error} /> : null}
 
       {products.length === 0 ? (
-        <Card padding={8}>
-          <VStack gap={3} className="py-4">
-            <Heading level={2} className="text-lg font-medium">Nenhum achadinho cadastrado ainda</Heading>
-            <Text color="secondary" className="max-w-md text-sm">
-              Cadastre seu primeiro produto com ofertas de reserva. Quando a loja principal esgotar,
-              seus seguidores continuam comprando no backup e você não perde comissão.
-            </Text>
-            <div className="pt-2">
-              <Button
-                icon={<Plus size={16} aria-hidden="true" />}
-                label="Adicionar primeiro produto"
-                onClick={() => onComposingChange(true)}
-              />
-            </div>
-          </VStack>
-        </Card>
+        <ActivationEmpty onCompose={beginCompose} onDemoDraft={fillDemoDraft} />
       ) : (
         <>
           {/* Mobile view: rich e-commerce product cards (never overflow) */}
@@ -487,6 +674,9 @@ export function LinksPanel({
                         {product.offers.length} {product.offers.length === 1 ? "oferta" : "ofertas"}
                       </span>
                     </div>
+                    <div className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
+                      {lastVisitCopy(product.lastVisit)}
+                    </div>
                   </div>
 
                   <div className="mt-3 flex items-center justify-between border-t border-[var(--color-border)] pt-3">
@@ -497,6 +687,13 @@ export function LinksPanel({
                       onChange={() => toggleVisible(product)}
                     />
                     <div className="flex items-center gap-1.5">
+                      <Button
+                        variant="ghost"
+                        href={`${publicPrefix}/r/${product.code}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        label="Testar clique"
+                      />
                       <Button
                         variant="secondary"
                         icon={isCopied ? <Check size={14} /> : <Copy size={14} />}
@@ -582,15 +779,15 @@ export function LinksPanel({
                           {status.label}
                         </span>
                       </td>
-                      <td className="max-w-44 truncate px-4 py-3.5">
+                      <td className="max-w-72 px-4 py-3.5">
                         <span className="flex items-center gap-2">
                           <span className="truncate text-xs font-medium text-[var(--color-text-primary)]">
                             {product.destinationTitle}
                           </span>
                           {inStock ? <HopNow /> : null}
                         </span>
-                        <div className="text-[11px] text-[var(--color-text-secondary)] truncate">
-                          {product.offers.length} ofertas cadastradas
+                        <div className="text-[11px] text-[var(--color-text-secondary)]">
+                          {lastVisitCopy(product.lastVisit)}
                         </div>
                       </td>
                       <td className="px-4 py-3.5">
@@ -603,6 +800,13 @@ export function LinksPanel({
                       </td>
                       <td className="px-4 py-3.5 text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            href={`${publicPrefix}/r/${product.code}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            label="Testar clique"
+                          />
                           <Button
                             variant="secondary"
                             icon={copied === product.code ? <Check size={14} /> : <Copy size={14} />}

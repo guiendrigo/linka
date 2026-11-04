@@ -11,6 +11,15 @@ export const getWorkspace = createServerFn({ method: "GET" })
     return loadWorkspace(context.userId);
   });
 
+export const syncUserPlan = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((data: unknown) => ({ isPro: asRecord(data).isPro === true }))
+  .handler(async ({ context, data }): Promise<{ planTier: "free" | "pro" }> => {
+    const { savePlanTier } = await import("@/lib/linka/store.server");
+    const planTier = await savePlanTier(context.userId, data.isPro);
+    return { planTier };
+  });
+
 export const addProduct = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((data: unknown) => {
