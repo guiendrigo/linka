@@ -9,8 +9,10 @@ import {
   type PhotoMime,
 } from "./bio.ts";
 import { productCode, type CleanProduct } from "./input.ts";
+import { STOCK_FRESH_MS } from "./shopee.ts";
 import { resolveAffiliateCredential } from "./shopee/credentials.server.ts";
 import type { SmartLink } from "./types.ts";
+import { productViewFields, type ProductListStatus } from "./workspace-status.ts";
 
 export type WorkspaceOffer = {
   id: string;
@@ -28,6 +30,8 @@ export type WorkspaceProduct = {
   commissionPct: number;
   bioVisible: boolean;
   offers: WorkspaceOffer[];
+  status: ProductListStatus;
+  destinationTitle: string;
 };
 
 export type BioPageView = {
@@ -40,6 +44,7 @@ export type BioPageView = {
 export type WorkspaceView = {
   stock: { automatic: boolean };
   bio: BioPageView;
+  pollMs: number;
   products: WorkspaceProduct[];
 };
 
@@ -91,7 +96,8 @@ function asIso(value: unknown): string | null {
 }
 
 function groupProducts(rows: ProductRow[]): WorkspaceProduct[] {
-  const products: WorkspaceProduct[] = [];
+  type Grouped = Omit<WorkspaceProduct, "status" | "destinationTitle">;
+  const products: Grouped[] = [];
   for (const row of rows) {
     let product = products.find((item) => item.id === row.id);
     if (!product) {
@@ -116,7 +122,7 @@ function groupProducts(rows: ProductRow[]): WorkspaceProduct[] {
       });
     }
   }
-  return products;
+  return products.map((item) => ({ ...item, ...productViewFields(item) }));
 }
 
 const productSelect = `
@@ -135,6 +141,7 @@ export async function loadWorkspace(userId: string): Promise<WorkspaceView> {
   return {
     stock: { automatic: resolveAffiliateCredential(userId) != null },
     bio: await ensureBioPage(userId),
+    pollMs: STOCK_FRESH_MS,
     products: groupProducts(listed),
   };
 }
