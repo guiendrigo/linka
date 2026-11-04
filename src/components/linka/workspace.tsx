@@ -25,7 +25,7 @@ import { TextInput } from "@astryxdesign/core/TextInput";
 import { VStack } from "@astryxdesign/core/VStack";
 import { SidePanel } from "@/components/linka/side-panel";
 import { PHOTO_MAX_BYTES } from "@/lib/linka/bio";
-import { formatBrl, resolutionCopy, resolveSmartLink } from "@/lib/linka/resolve";
+import { formatBrl } from "@/lib/linka/resolve";
 import { centsToBrlInput, type OfferDraft } from "@/lib/linka/input";
 import { previewPathPrefix } from "@/lib/preview-path-prefix";
 import type { BioPageView, WorkspaceProduct } from "@/lib/linka/store.server";
@@ -52,25 +52,6 @@ function offerRow(partial?: Partial<OfferDraft> & { key?: string }): OfferRow {
 
 function blankOffers(): OfferRow[] {
   return [offerRow(), offerRow()];
-}
-
-function stockOf(product: WorkspaceProduct) {
-  const resolution = resolveSmartLink({
-    code: product.code,
-    title: product.title,
-    detail: "",
-    priceCents: product.priceCents,
-    commissionPct: product.commissionPct,
-    offers: product.offers,
-  });
-  const copy = resolutionCopy(resolution);
-  const status =
-    resolution.status === "ok"
-      ? { label: "Em estoque", on: true }
-      : resolution.status === "all_out"
-        ? { label: "Esgotado", on: false }
-        : { label: "Sem destino", on: false };
-  return { copy, status, resolution };
 }
 
 export function WorkspacePending({ error }: { error: string | null }) {
@@ -254,6 +235,7 @@ export function LinksPanel({
   bio,
   products,
   canCheck,
+  pollMs,
   onChange,
   composing,
   composeNonce,
@@ -262,6 +244,7 @@ export function LinksPanel({
   bio: BioPageView;
   products: WorkspaceProduct[];
   canCheck: boolean;
+  pollMs: number;
   onChange: (next: { bio?: BioPageView; products?: WorkspaceProduct[] }) => void;
   composing: boolean;
   composeNonce: number;
@@ -286,12 +269,12 @@ export function LinksPanel({
     void runCheck(false);
     const id = window.setInterval(() => {
       if (!stop) void runCheck(false);
-    }, 15 * 60 * 1000);
+    }, pollMs);
     return () => {
       stop = true;
       window.clearInterval(id);
     };
-  }, [canCheck, products.length === 0]);
+  }, [canCheck, pollMs, products.length]);
 
   useEffect(() => {
     if (composeNonce === 0) return;
@@ -458,7 +441,7 @@ export function LinksPanel({
           {/* Mobile view: rich e-commerce product cards (never overflow) */}
           <div className="flex flex-col gap-3 lg:hidden">
             {products.map((product) => {
-              const { copy, status } = stockOf(product);
+              const { status } = product;
               const inStock = status.on;
               const isCopied = copied === product.code;
               return (
@@ -503,7 +486,7 @@ export function LinksPanel({
                     <div className="flex items-center justify-between text-[var(--color-text-secondary)]">
                       <span>Destino do clique agora:</span>
                       <span className="font-semibold text-[var(--color-text-primary)] truncate max-w-44">
-                        {copy.title}
+                        {product.destinationTitle}
                       </span>
                     </div>
                     <div className="mt-1 flex items-center justify-between font-mono text-[11px] text-[var(--color-text-secondary)]">
@@ -572,7 +555,7 @@ export function LinksPanel({
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
                 {products.map((product) => {
-                  const { copy, status } = stockOf(product);
+                  const { status } = product;
                   const inStock = status.on;
                   return (
                     <tr key={product.id} className="hover:bg-[var(--color-background-body)]/40 transition-colors">
@@ -611,7 +594,7 @@ export function LinksPanel({
                       </td>
                       <td className="max-w-44 truncate px-4 py-3.5">
                         <span className="text-xs font-medium text-[var(--color-text-primary)]">
-                          {copy.title}
+                          {product.destinationTitle}
                         </span>
                         <div className="text-[11px] text-[var(--color-text-secondary)] truncate">
                           {product.offers.length} ofertas cadastradas

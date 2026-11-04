@@ -7,7 +7,7 @@ import { Text } from "@astryxdesign/core/Text";
 import { VStack } from "@astryxdesign/core/VStack";
 import { AppShell } from "@/components/linka/shell";
 import { resolveCode } from "@/lib/linka/resolve.functions";
-import { formatBrl, redirectTarget, resolutionCopy, resolveSmartLink, visitorStock } from "@/lib/linka/resolve";
+import { formatBrl, resolutionCopy } from "@/lib/linka/resolve";
 
 export const Route = createFileRoute("/r/$code")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -15,23 +15,26 @@ export const Route = createFileRoute("/r/$code")({
   }),
   loaderDeps: ({ search }) => ({ on: search.on }),
   loader: async ({ params, deps }) => {
-    const result = await resolveCode({ data: params.code });
-    if (!result.found) throw notFound();
-    const link = visitorStock(params.code, result.link, deps.on);
-    const resolution = resolveSmartLink(link);
-    const target = redirectTarget(resolution);
-    if (target) {
-      throw redirect({
-        href: target,
-        statusCode: 302,
-        headers: { "cache-control": "no-store" },
-      });
+    const visit = await resolveCode({ data: { code: params.code, on: deps.on } });
+    switch (visit.kind) {
+      case "invalid":
+      case "missing":
+        throw notFound();
+      case "redirect":
+        throw redirect({
+          href: visit.url,
+          statusCode: 302,
+          headers: { "cache-control": "no-store" },
+        });
+      case "sold_out":
+        return { kind: "sold_out" as const, visit };
+      case "blocked":
+        return { kind: "blocked" as const, visit };
     }
-    return { link, resolution };
   },
   head: ({ loaderData }) => ({
     meta: loaderData
-      ? [{ title: `${loaderData.link.title} · Oferta Esgotada` }]
+      ? [{ title: `${loaderData.visit.title} · Oferta Esgotada` }]
       : [{ title: "Link não encontrado · Linka" }],
   }),
   notFoundComponent: MissingLink,
@@ -39,14 +42,14 @@ export const Route = createFileRoute("/r/$code")({
 });
 
 function VisitorPage() {
-  const { link, resolution } = Route.useLoaderData();
+  const { visit } = Route.useLoaderData();
   const copy =
-    resolution.status === "ok"
+    visit.kind === "blocked"
       ? {
           title: "Destino indisponível",
           body: "A oferta não é um link seguro https. O clique não foi redirecionado.",
         }
-      : resolutionCopy(resolution);
+      : resolutionCopy(visit.resolution);
 
   return (
     <AppShell account={false}>
@@ -56,11 +59,11 @@ function VisitorPage() {
         </div>
 
         <Heading level={1} type="display-2" justify="center">
-          {link.title}
+          {visit.title}
         </Heading>
 
         <div className="text-xl font-bold text-[var(--color-text-primary)] tabular-nums">
-          {formatBrl(link.priceCents)}
+          {formatBrl(visit.priceCents)}
         </div>
 
         <Card padding={4}>

@@ -66,6 +66,7 @@ function LinksHome() {
           bio={data.bio}
           products={data.products}
           canCheck={data.stock.automatic}
+          pollMs={data.pollMs}
           onChange={(patch) => setData({ ...data, ...patch })}
           composing={composing}
           composeNonce={composeNonce}

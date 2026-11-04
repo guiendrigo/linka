@@ -1,4 +1,4 @@
-import { getSql } from "@/lib/db";
+import { getSql } from "../db.ts";
 import {
   BIO_CODE_RE,
   bioCode,
@@ -7,12 +7,12 @@ import {
   type BioIdentity,
   type BioListItem,
   type PhotoMime,
-} from "@/lib/linka/bio";
-import { productCode, type CleanProduct } from "@/lib/linka/input";
-import { STOCK_FRESH_MS } from "@/lib/linka/shopee";
-import { resolveAffiliateCredential } from "@/lib/linka/shopee/credentials.server";
-import { decideStock } from "@/lib/linka/stock-check.server";
-import type { SmartLink } from "@/lib/linka/types";
+} from "./bio.ts";
+import { productCode, type CleanProduct } from "./input.ts";
+import { STOCK_FRESH_MS } from "./shopee.ts";
+import { resolveAffiliateCredential } from "./shopee/credentials.server.ts";
+import type { SmartLink } from "./types.ts";
+import { productViewFields, type ProductListStatus } from "./workspace-status.ts";
 
 export type WorkspaceOffer = {
   id: string;
@@ -30,6 +30,8 @@ export type WorkspaceProduct = {
   commissionPct: number;
   bioVisible: boolean;
   offers: WorkspaceOffer[];
+  status: ProductListStatus;
+  destinationTitle: string;
 };
 
 export type BioPageView = {
@@ -42,6 +44,7 @@ export type BioPageView = {
 export type WorkspaceView = {
   stock: { automatic: boolean };
   bio: BioPageView;
+  pollMs: number;
   products: WorkspaceProduct[];
 };
 
@@ -93,7 +96,8 @@ function asIso(value: unknown): string | null {
 }
 
 function groupProducts(rows: ProductRow[]): WorkspaceProduct[] {
-  const products: WorkspaceProduct[] = [];
+  type Grouped = Omit<WorkspaceProduct, "status" | "destinationTitle">;
+  const products: Grouped[] = [];
   for (const row of rows) {
     let product = products.find((item) => item.id === row.id);
     if (!product) {
@@ -118,7 +122,7 @@ function groupProducts(rows: ProductRow[]): WorkspaceProduct[] {
       });
     }
   }
-  return products;
+  return products.map((item) => ({ ...item, ...productViewFields(item) }));
 }
 
 const productSelect = `
@@ -137,6 +141,7 @@ export async function loadWorkspace(userId: string): Promise<WorkspaceView> {
   return {
     stock: { automatic: resolveAffiliateCredential(userId) != null },
     bio: await ensureBioPage(userId),
+    pollMs: STOCK_FRESH_MS,
     products: groupProducts(listed),
   };
 }
@@ -237,7 +242,8 @@ export async function loadPublicBio(code: string): Promise<PublicBioPage | Missi
   const page = pages[0];
   if (!page) return { found: false };
   try {
-    await checkStock(page.user_id, { force: false });
+    const { freshenForUser } = await import("./stock-freshen.server.ts");
+    await freshenForUser(page.user_id, { force: false });
   } catch {
     // A visita usa o último estoque conhecido se a Shopee não responder.
   }
@@ -425,28 +431,3 @@ export async function findStoredLink(code: string): Promise<SmartLink | null> {
   };
 }
 
-export async function checkStock(
-  userId: string,
-  options?: { force?: boolean; productId?: string },
-): Promise<StockReport> {
-  const decision = await decideStock(userId, options);
-  const view = await loadWorkspace(userId);
-  return { ...decision, products: view.products };
-}
-
-const stockCooldown = new Map<string, number>();
-
-export async function freshenStoredStock(code: string): Promise<void> {
-  const until = stockCooldown.get(code) ?? 0;
-  if (until > Date.now()) return;
-  const sql = await getSql();
-  const rows = await sql<{ id: string; user_id: string }>`
-    select id, user_id from products where code = ${code}
-  `;
-  const product = rows[0];
-  if (!product) return;
-  const report = await checkStock(product.user_id, { productId: product.id, force: false });
-  if (report.state === "rejected" || report.state === "unreachable" || report.state === "throttled") {
-    stockCooldown.set(code, Date.now() + STOCK_FRESH_MS);
-  }
-}
