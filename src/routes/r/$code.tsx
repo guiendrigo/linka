@@ -1,7 +1,5 @@
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
-import { AlertCircle, ShoppingBag } from "lucide-react";
 import { Button } from "@astryxdesign/core/Button";
-import { Card } from "@astryxdesign/core/Card";
 import { Heading } from "@astryxdesign/core/Heading";
 import { Text } from "@astryxdesign/core/Text";
 import { VStack } from "@astryxdesign/core/VStack";
@@ -34,7 +32,7 @@ export const Route = createFileRoute("/r/$code")({
   },
   head: ({ loaderData }) => ({
     meta: loaderData
-      ? [{ title: `${loaderData.visit.title} · Oferta Esgotada` }]
+      ? [{ title: `${loaderData.visit.title} · Oferta esgotada` }]
       : [{ title: "Link não encontrado · Linka" }],
   }),
   notFoundComponent: MissingLink,
@@ -53,39 +51,32 @@ function VisitorPage() {
 
   return (
     <AppShell account={false}>
-      <VStack gap={4} maxWidth={448} className="mx-auto mt-12 w-full text-center">
-        <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-rose-50 text-rose-600 dark:bg-rose-950 dark:text-rose-300">
-          <AlertCircle size={28} aria-hidden="true" />
-        </div>
+      <VStack gap={5} maxWidth={448} className="mx-auto mt-16 w-full">
+        <VStack gap={2}>
+          <Text size="sm" color="secondary">
+            {visit.kind === "blocked" ? "Destino indisponível" : "Esgotado"}
+          </Text>
+          <Heading level={1} type="display-2">
+            {visit.title}
+          </Heading>
+          <span className="text-2xl font-medium tabular-nums text-[var(--color-text-primary)]">
+            {formatBrl(visit.priceCents)}
+          </span>
+        </VStack>
 
-        <Heading level={1} type="display-2" justify="center">
-          {visit.title}
-        </Heading>
+        <VStack gap={2}>
+          <Heading level={2} className="text-base font-medium">
+            {copy.title}
+          </Heading>
+          <Text color="secondary" size="sm">
+            {copy.body}
+          </Text>
+          <Text color="secondary" size="sm">
+            Todas as lojas cadastradas para este achadinho estão sem estoque no momento.
+          </Text>
+        </VStack>
 
-        <div className="text-xl font-bold text-[var(--color-text-primary)] tabular-nums">
-          {formatBrl(visit.priceCents)}
-        </div>
-
-        <Card padding={4}>
-          <VStack gap={2} hAlign="center" className="text-center">
-            <span className="inline-flex items-center rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700 dark:bg-rose-950 dark:text-rose-300">
-              Estoque encerrado
-            </span>
-            <Heading level={2} className="text-base font-bold">
-              {copy.title}
-            </Heading>
-            <Text color="secondary" size="sm">
-              {copy.body}
-            </Text>
-            <Text color="secondary" size="sm" className="mt-1 text-xs">
-              Todas as lojas cadastradas para este achadinho estão sem estoque no momento.
-            </Text>
-          </VStack>
-        </Card>
-
-        <div className="pt-2">
-          <Button href="/" variant="secondary" label="Conhecer o Linka" width="100%" />
-        </div>
+        <Button href="/" variant="secondary" label="Conhecer o Linka" width="100%" />
       </VStack>
     </AppShell>
   );
@@ -94,19 +85,12 @@ function VisitorPage() {
 function MissingLink() {
   return (
     <AppShell account={false}>
-      <VStack gap={4} maxWidth={448} className="mx-auto mt-16 w-full text-center">
-        <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-[var(--color-accent-muted)] text-[var(--color-text-accent)]">
-          <ShoppingBag size={28} aria-hidden="true" />
-        </div>
-        <Heading level={1} type="display-2" justify="center">
-          Esse link não existe.
+      <VStack gap={4} maxWidth={448} className="mx-auto mt-16 w-full">
+        <Heading level={1} type="display-2">
+          Esse link não existe
         </Heading>
-        <Text color="secondary" justify="center">
-          Esse endereço não aponta para nenhum produto ou achadinho ativo.
-        </Text>
-        <div className="pt-2">
-          <Button href="/" variant="primary" label="Ir para a página inicial" width="100%" />
-        </div>
+        <Text color="secondary">Esse endereço não aponta para nenhum produto ou achadinho ativo.</Text>
+        <Button href="/" variant="primary" label="Ir para a página inicial" width="100%" />
       </VStack>
     </AppShell>
   );

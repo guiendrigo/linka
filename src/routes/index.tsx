@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowRight, CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@astryxdesign/core/Button";
 import { Heading } from "@astryxdesign/core/Heading";
@@ -85,32 +84,29 @@ function PublicHome() {
 
   return (
     <AppShell>
-      <div className="mt-8 grid items-start gap-8 lg:mt-14 lg:grid-cols-2 lg:gap-14">
-        <VStack gap={5}>
-          <Heading level={1} type="display-1">
-            O clique não se perde quando acaba o estoque na Shopee.
-          </Heading>
-          <Text color="secondary" className="text-base sm:text-lg">
-            Um link inteligente de achadinho para Stories, WhatsApp e Bio. Se a loja principal esgotar,
-            o Linka envia seu seguidor direto para o backup com estoque — sem você ter que trocar o link de novo.
-          </Text>
+      <div className="grid items-center gap-12 lg:min-h-[calc(100dvh-5rem)] lg:grid-cols-2 lg:gap-16">
+        <VStack gap={6}>
+          <VStack gap={4}>
+            <Heading level={1} type="display-1">
+              O clique não se perde quando acaba o estoque na Shopee
+            </Heading>
+            <Text color="secondary" className="max-w-xl text-base sm:text-lg">
+              Um link de achadinho para Stories, WhatsApp e Bio. Se a loja principal esgotar, o
+              Linka envia o seguidor para o backup com estoque, sem você trocar o link.
+            </Text>
+          </VStack>
 
-          <div className="flex flex-col items-start gap-2 pt-1">
-            <Button
-              href="/login"
-              variant="primary"
-              label="Criar meu link grátis"
-              icon={<ArrowRight size={16} aria-hidden="true" />}
-            />
+          <div className="flex flex-col items-start gap-2">
+            <Button href="/login" variant="primary" label="Criar meu link" />
             <Text size="sm" color="secondary">
-              Gratuito no beta · Sem cartão de crédito · Setup em 1 minuto
+              Beta, sem cartão
             </Text>
           </div>
 
-          <ol className="mt-2 divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
+          <ol className="divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
             {STEPS.map((step, index) => (
               <li key={step.title} className="flex gap-4 py-4">
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent-muted)] text-sm font-bold text-[var(--color-text-accent)]">
+                <span className="w-6 shrink-0 font-mono text-sm text-[var(--color-text-secondary)] tabular-nums">
                   {index + 1}
                 </span>
                 <VStack gap={1}>
@@ -122,31 +118,15 @@ function PublicHome() {
               </li>
             ))}
           </ol>
-
-          <div className="grid grid-cols-1 gap-2 pt-1 sm:grid-cols-3">
-            <div className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-2.5">
-              <CheckCircle2 size={16} className="text-[var(--color-text-accent)] shrink-0" aria-hidden="true" />
-              <span className="text-xs text-[var(--color-text-secondary)]">Conferência Shopee automática</span>
-            </div>
-            <div className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-2.5">
-              <ShieldCheck size={16} className="text-[var(--color-text-accent)] shrink-0" aria-hidden="true" />
-              <span className="text-xs text-[var(--color-text-secondary)]">Sua comissão 100% protegida</span>
-            </div>
-            <div className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-2.5">
-              <Sparkles size={16} className="text-[var(--color-text-accent)] shrink-0" aria-hidden="true" />
-              <span className="text-xs text-[var(--color-text-secondary)]">Seguidor não precisa de conta</span>
-            </div>
-          </div>
         </VStack>
         <Bench />
       </div>
 
-      <div className="mt-10 border-t border-[var(--color-border)] pt-6 text-xs text-[var(--color-text-secondary)]">
-        Quem clica é redirecionado via 302 direto para a oferta em estoque na Shopee. A decisão também responde como API pública em{" "}
-        <a className="font-medium underline hover:text-[var(--color-text-primary)]" href={`/api/r/${DEMO_CODE}`}>
+      <div className="mt-16 border-t border-[var(--color-border)] pt-6 font-mono text-xs text-[var(--color-text-secondary)]">
+        Quem clica segue 302 para a oferta em estoque. A mesma decisão em{" "}
+        <a className="underline hover:text-[var(--color-text-primary)]" href={`/api/r/${DEMO_CODE}`}>
           /api/r/{DEMO_CODE}
         </a>
-        .
       </div>
 
       {foundation ? <FoundationCheck /> : null}

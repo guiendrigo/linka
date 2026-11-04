@@ -1,9 +1,7 @@
 import {
-  AlertCircle,
   ArrowDown,
   ArrowUp,
   Check,
-  CheckCircle2,
   Clock,
   Copy,
   ExternalLink,
@@ -23,6 +21,7 @@ import { Text } from "@astryxdesign/core/Text";
 import { TextArea } from "@astryxdesign/core/TextArea";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { VStack } from "@astryxdesign/core/VStack";
+import { HopNow } from "@/components/linka/hop-now";
 import { SidePanel } from "@/components/linka/side-panel";
 import { PHOTO_MAX_BYTES } from "@/lib/linka/bio";
 import { formatBrl } from "@/lib/linka/resolve";
@@ -60,7 +59,7 @@ export function WorkspacePending({ error }: { error: string | null }) {
       {error ? (
         <Banner status="error" title={error} />
       ) : (
-        <div className="h-40 animate-pulse rounded-3xl bg-[var(--color-surface)]" />
+        <div className="h-40 rounded-2xl bg-[var(--color-surface)]" />
       )}
     </div>
   );
@@ -164,7 +163,7 @@ function BioBlock({ bio, onChange }: { bio: BioPageView; onChange: (next: BioPag
 
         <VStack gap={1} className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="text-base font-bold text-[var(--color-text-primary)]">
+            <span className="text-base font-medium text-[var(--color-text-primary)]">
               {bio.title || "Sua página da bio"}
             </span>
           </div>
@@ -175,7 +174,7 @@ function BioBlock({ bio, onChange }: { bio: BioPageView; onChange: (next: BioPag
             <Button
               variant="secondary"
               icon={copied ? <Check size={16} /> : <Copy size={16} />}
-              label={copied ? "Copiado!" : "Copiar link da bio"}
+              label={copied ? "Copiado" : "Copiar link da bio"}
               onClick={copyAddress}
             />
             <Button
@@ -203,7 +202,7 @@ function BioBlock({ bio, onChange }: { bio: BioPageView; onChange: (next: BioPag
             label="Descrição para seus seguidores"
             value={description}
             onChange={setDescription}
-            placeholder="Ex: As melhores ofertas e achados da Shopee testados por mim!"
+            placeholder="Ex: Ofertas da Shopee que eu indico"
             rows={2}
             width="100%"
           />
@@ -386,7 +385,7 @@ export function LinksPanel({
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <Clock size={16} className="text-[var(--color-text-accent)] shrink-0" aria-hidden="true" />
+          <Clock size={16} className="shrink-0 text-[var(--color-text-secondary)]" aria-hidden="true" />
           {checkAlert ? (
             <span className="text-xs text-[var(--color-text-secondary)]">
               {checkNote ?? "Estoque indisponível agora."}
@@ -418,11 +417,8 @@ export function LinksPanel({
 
       {products.length === 0 ? (
         <Card padding={8}>
-          <VStack gap={3} hAlign="center" className="text-center py-6">
-            <div className="flex size-14 items-center justify-center rounded-full bg-[var(--color-accent-muted)] text-[var(--color-text-accent)]">
-              <ShoppingBag size={28} aria-hidden="true" />
-            </div>
-            <Heading level={2} className="text-lg">Nenhum achadinho cadastrado ainda</Heading>
+          <VStack gap={3} className="py-4">
+            <Heading level={2} className="text-lg font-medium">Nenhum achadinho cadastrado ainda</Heading>
             <Text color="secondary" className="max-w-md text-sm">
               Cadastre seu primeiro produto com ofertas de reserva. Quando a loja principal esgotar,
               seus seguidores continuam comprando no backup e você não perde comissão.
@@ -452,41 +448,37 @@ export function LinksPanel({
                   <div className="flex items-start justify-between gap-3">
                     <button
                       type="button"
-                      className="text-left font-bold text-base text-[var(--color-text-primary)] hover:text-[var(--color-text-accent)] transition-colors focus-visible:outline-none"
+                      className="text-left text-base font-medium text-[var(--color-text-primary)] transition-colors hover:text-[var(--color-text-accent)] focus-visible:outline-none"
                       onClick={() => beginEdit(product)}
                     >
                       {product.title}
                     </button>
-                    <span
-                      className={`inline-flex items-center gap-1 shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${
-                        inStock
-                          ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
-                          : "bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300"
-                      }`}
-                    >
-                      {inStock ? (
-                        <CheckCircle2 size={12} aria-hidden="true" />
-                      ) : (
-                        <AlertCircle size={12} aria-hidden="true" />
-                      )}
+                    <span className="inline-flex shrink-0 items-center gap-2 text-xs text-[var(--color-text-secondary)]">
+                      <span
+                        className={`size-1.5 rounded-full ${inStock ? "bg-[#16a34a]" : "bg-[#dc2626]"}`}
+                        aria-hidden="true"
+                      />
                       {status.label}
                     </span>
                   </div>
 
                   <div className="mt-2 flex flex-wrap items-baseline gap-2">
-                    <span className="text-base font-bold text-[var(--color-text-primary)] tabular-nums">
+                    <span className="text-base font-medium tabular-nums text-[var(--color-text-primary)]">
                       {formatBrl(product.priceCents)}
                     </span>
-                    <span className="rounded bg-[var(--color-accent-muted)] px-1.5 py-0.5 text-[11px] font-semibold text-[var(--color-text-accent)]">
+                    <span className="text-xs text-[var(--color-text-secondary)]">
                       {product.commissionPct}% de comissão
                     </span>
                   </div>
 
-                  <div className="mt-3 rounded-lg bg-[var(--color-background-body)] p-2.5 text-xs">
-                    <div className="flex items-center justify-between text-[var(--color-text-secondary)]">
-                      <span>Destino do clique agora:</span>
-                      <span className="font-semibold text-[var(--color-text-primary)] truncate max-w-44">
-                        {product.destinationTitle}
+                  <div className="mt-3 rounded-lg bg-[var(--color-background-body)] p-3 text-xs">
+                    <div className="flex items-center justify-between gap-2 text-[var(--color-text-secondary)]">
+                      <span>Destino</span>
+                      <span className="flex min-w-0 items-center gap-2">
+                        <span className="truncate font-medium text-[var(--color-text-primary)]">
+                          {product.destinationTitle}
+                        </span>
+                        {inStock ? <HopNow /> : null}
                       </span>
                     </div>
                     <div className="mt-1 flex items-center justify-between font-mono text-[11px] text-[var(--color-text-secondary)]">
@@ -508,7 +500,7 @@ export function LinksPanel({
                       <Button
                         variant="secondary"
                         icon={isCopied ? <Check size={14} /> : <Copy size={14} />}
-                        label={isCopied ? "Copiado!" : "Copiar"}
+                        label={isCopied ? "Copiado" : "Copiar"}
                         onClick={() => copyLink(product.code)}
                       />
                       <Button
@@ -542,14 +534,14 @@ export function LinksPanel({
           {/* Desktop view: clean, well-spaced table */}
           <div className="hidden overflow-x-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] lg:block">
             <table className="w-full min-w-[46rem] border-collapse text-left">
-              <thead className="bg-[var(--color-background-body)] text-xs font-semibold tracking-wider text-[var(--color-text-secondary)] uppercase">
+              <thead className="bg-[var(--color-background-body)] text-xs font-medium text-[var(--color-text-secondary)]">
                 <tr>
                   <th className="px-4 py-3">Produto</th>
                   <th className="px-4 py-3">Link</th>
                   <th className="px-4 py-3">Preço</th>
                   <th className="px-4 py-3">Estoque</th>
-                  <th className="px-4 py-3">Destino Atual</th>
-                  <th className="px-4 py-3">Na Bio</th>
+                  <th className="px-4 py-3">Destino</th>
+                  <th className="px-4 py-3">Na bio</th>
                   <th className="px-4 py-3 text-right">Ações</th>
                 </tr>
               </thead>
@@ -582,19 +574,20 @@ export function LinksPanel({
                         </span>
                       </td>
                       <td className="px-4 py-3.5">
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
-                            inStock
-                              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
-                              : "bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300"
-                          }`}
-                        >
+                        <span className="inline-flex items-center gap-2 text-xs text-[var(--color-text-secondary)]">
+                          <span
+                            className={`size-1.5 rounded-full ${inStock ? "bg-[#16a34a]" : "bg-[#dc2626]"}`}
+                            aria-hidden="true"
+                          />
                           {status.label}
                         </span>
                       </td>
                       <td className="max-w-44 truncate px-4 py-3.5">
-                        <span className="text-xs font-medium text-[var(--color-text-primary)]">
-                          {product.destinationTitle}
+                        <span className="flex items-center gap-2">
+                          <span className="truncate text-xs font-medium text-[var(--color-text-primary)]">
+                            {product.destinationTitle}
+                          </span>
+                          {inStock ? <HopNow /> : null}
                         </span>
                         <div className="text-[11px] text-[var(--color-text-secondary)] truncate">
                           {product.offers.length} ofertas cadastradas
@@ -613,7 +606,7 @@ export function LinksPanel({
                           <Button
                             variant="secondary"
                             icon={copied === product.code ? <Check size={14} /> : <Copy size={14} />}
-                            label={copied === product.code ? "Copiado!" : "Copiar"}
+                            label={copied === product.code ? "Copiado" : "Copiar"}
                             onClick={() => copyLink(product.code)}
                           />
                           <Button
@@ -689,8 +682,8 @@ export function LinksPanel({
 
             <div className="border-t border-[var(--color-border)] pt-3">
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-text-secondary)]">
-                  Lojas e Ofertas ({offers.length} de 4)
+                <span className="text-xs font-medium text-[var(--color-text-secondary)]">
+                  Lojas e ofertas ({offers.length} de 4)
                 </span>
                 <span className="text-[11px] text-[var(--color-text-secondary)]">
                   Ordem de tentativa do clique
@@ -702,8 +695,8 @@ export function LinksPanel({
                   <Card key={offer.key} padding={3}>
                     <VStack gap={2}>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-[var(--color-text-accent)] uppercase">
-                          {index === 0 ? "1. Oferta Principal" : `${index + 1}. Backup ${index}`}
+                        <span className="text-xs font-medium text-[var(--color-text-secondary)]">
+                          {index === 0 ? "1. Oferta principal" : `${index + 1}. Backup ${index}`}
                         </span>
                         <Switch
                           label={offer.inStock ? "Em estoque" : "Esgotado"}

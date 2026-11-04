@@ -1,4 +1,4 @@
-import { Link2, Sparkles } from "lucide-react";
+import { CreditCard, Link2 } from "lucide-react";
 import { useState, useSyncExternalStore, type ReactNode } from "react";
 import { AppShell } from "@astryxdesign/core/AppShell";
 import { Avatar } from "@astryxdesign/core/Avatar";
@@ -57,7 +57,7 @@ export function ConsoleShell({
               <SideNavItem
                 label="Plano"
                 href="/plano"
-                icon={<Sparkles size={16} aria-hidden="true" />}
+                icon={<CreditCard size={16} aria-hidden="true" />}
                 isSelected={current === "plano"}
               />
             ) : null}
