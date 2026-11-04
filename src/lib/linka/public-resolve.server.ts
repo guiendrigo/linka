@@ -1,9 +1,12 @@
 import { findLink } from "./catalog.ts";
-import { loadPublicResolution, type MissingLink, type ResolvedLink } from "./public-resolve.ts";
+import { decidePublicVisit, type PublicVisit } from "./public-resolve.ts";
 
-export async function loadStoredResolution(code: string): Promise<ResolvedLink | MissingLink> {
+export async function decideStoredVisit(
+  code: string,
+  opts: { on?: string } = {},
+): Promise<PublicVisit> {
   const { findStoredLink, freshenStoredStock } = await import("./store.server.ts");
-  return loadPublicResolution(code, {
+  return decidePublicVisit(code, opts, {
     freshen: freshenStoredStock,
     findStored: findStoredLink,
     findDemo: findLink,
