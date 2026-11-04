@@ -6,7 +6,7 @@ export function AccountSlot() {
   const { user, isPending } = useCurrentUserState();
 
   if (isPending) {
-    return <div aria-hidden="true" className="h-11 w-24 animate-pulse rounded-full bg-muted" />;
+    return <div aria-hidden="true" className="h-9 w-20 rounded-lg bg-[var(--color-surface)]" />;
   }
 
   if (!user) {

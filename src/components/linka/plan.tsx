@@ -1,11 +1,11 @@
 import {
   Check,
   CheckCircle2,
+  CreditCard,
   ExternalLink,
   Lock,
   RotateCcw,
   ShieldCheck,
-  Sparkles,
   Zap,
 } from "lucide-react";
 import { useState } from "react";
@@ -48,10 +48,10 @@ export function PlanPanel() {
   if (status === "loading" || status === "idle") {
     return (
       <VStack gap={4} maxWidth={720} className="w-full" aria-busy="true">
-        <div className="h-44 w-full animate-pulse rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]" />
+        <div className="h-44 w-full rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="h-72 animate-pulse rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]" />
-          <div className="h-72 animate-pulse rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]" />
+          <div className="h-72 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]" />
+          <div className="h-72 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]" />
         </div>
       </VStack>
     );
@@ -71,7 +71,7 @@ export function PlanPanel() {
             <HStack gap={3} vAlign="center" justify="between" wrap="wrap">
               <HStack gap={2} vAlign="center">
                 <div className="flex size-10 items-center justify-center rounded-xl bg-[var(--color-accent-muted)] text-[var(--color-text-accent)]">
-                  <Sparkles className="size-5" aria-hidden="true" />
+                  <CreditCard className="size-5" aria-hidden="true" />
                 </div>
                 <VStack gap={0}>
                   <Heading level={2} className="text-lg font-bold sm:text-xl">
@@ -141,7 +141,7 @@ export function PlanPanel() {
           <HStack gap={3} vAlign="center" justify="between" wrap="wrap">
             <HStack gap={2} vAlign="center">
               <div className="flex size-10 items-center justify-center rounded-xl bg-[var(--color-accent-muted)] text-[var(--color-text-accent)]">
-                <Sparkles className="size-5" aria-hidden="true" />
+                <CreditCard className="size-5" aria-hidden="true" />
               </div>
               <VStack gap={0}>
                 <Heading level={2} className="text-lg font-bold sm:text-xl">
@@ -193,7 +193,7 @@ export function PlanPanel() {
             </div>
 
             <div className="flex items-start gap-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-background-body)] p-3">
-              <Sparkles className="size-4 shrink-0 text-[var(--color-text-accent)] mt-0.5" aria-hidden="true" />
+              <CreditCard className="size-4 mt-0.5 shrink-0 text-[var(--color-text-secondary)]" aria-hidden="true" />
               <VStack gap={0.5}>
                 <Text weight="medium" size="sm">Links e bio sem limites</Text>
                 <Text size="xsm" color="secondary">
@@ -333,7 +333,7 @@ export function PlanCard({
 
         <VStack gap={1} className="py-2 border-y border-[var(--color-border)]">
           <HStack gap={1} vAlign="end">
-            <Heading level={2} className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+            <Heading level={2} className="text-2xl font-medium tabular-nums sm:text-3xl">
               {priceDisplay}
             </Heading>
             <Text size="sm" color="secondary" weight="medium" className="pb-0.5">

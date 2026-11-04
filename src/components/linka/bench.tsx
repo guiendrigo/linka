@@ -1,4 +1,4 @@
-import { Check, Copy, ExternalLink, Sparkles } from "lucide-react";
+import { Check, Copy, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@astryxdesign/core/Button";
 import { Card } from "@astryxdesign/core/Card";
@@ -6,6 +6,7 @@ import { Heading } from "@astryxdesign/core/Heading";
 import { Switch } from "@astryxdesign/core/Switch";
 import { Text } from "@astryxdesign/core/Text";
 import { VStack } from "@astryxdesign/core/VStack";
+import { HopNow } from "@/components/linka/hop-now";
 import { DEMO_CODE, findLink } from "@/lib/linka/catalog";
 import { formatBrl, resolutionCopy, resolveSmartLink, stockQuery } from "@/lib/linka/resolve";
 import type { Offer } from "@/lib/linka/types";
@@ -48,26 +49,25 @@ export function Bench() {
   }
 
   return (
-    <Card padding={4} aria-label="Simulador do link inteligente">
-      <VStack gap={4}>
-        <div className="flex items-center justify-between gap-2 border-b border-[var(--color-border)] pb-3">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--color-text-accent)]">
-            <Sparkles size={14} aria-hidden="true" />
-            <span>Simulador ao vivo de Achadinho</span>
-          </div>
-          <span className="rounded bg-[var(--color-accent-muted)] px-2 py-0.5 text-[11px] font-medium text-[var(--color-text-accent)]">
-            Alterne o estoque abaixo
-          </span>
+    <Card padding={5} aria-label="Simulador do link inteligente">
+      <VStack gap={5}>
+        <div className="flex items-baseline justify-between gap-3 border-b border-[var(--color-border)] pb-3">
+          <Text size="sm" color="secondary">
+            Simulador
+          </Text>
+          <Text size="sm" color="secondary">
+            Marque o estoque
+          </Text>
         </div>
 
         <VStack gap={1}>
           <Heading level={2}>{link.title}</Heading>
           <div className="flex flex-wrap items-baseline gap-2">
-            <span className="text-xl font-bold tracking-tight text-[var(--color-text-primary)]">
+            <span className="text-2xl font-medium tabular-nums text-[var(--color-text-primary)]">
               {formatBrl(link.priceCents)}
             </span>
-            <span className="inline-flex items-center rounded-full bg-[var(--color-accent-muted)] px-2 py-0.5 text-xs font-semibold text-[var(--color-text-accent)]">
-              {link.commissionPct}% de comissão estimada
+            <span className="text-sm text-[var(--color-text-secondary)]">
+              {link.commissionPct}% de comissão
             </span>
           </div>
         </VStack>
@@ -81,25 +81,17 @@ export function Bench() {
                 key={offer.id}
                 className={`rounded-xl border p-3 transition-colors ${
                   isChosen
-                    ? "border-[var(--color-accent)] bg-[var(--color-accent-muted)]/20 shadow-xs"
-                    : !offer.inStock
-                      ? "border-[var(--color-border)] bg-[var(--color-background-body)]/50 opacity-75"
-                      : "border-[var(--color-border)] bg-[var(--color-surface)]"
-                }`}
+                    ? "border-[var(--color-accent)] bg-[var(--color-surface)]"
+                    : "border-[var(--color-border)] bg-[var(--color-surface)]"
+                } ${offer.inStock ? "" : "opacity-60"}`}
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase">
-                        {roleLabel}
-                      </span>
-                      {isChosen ? (
-                        <span className="inline-flex items-center gap-1 rounded bg-[var(--color-accent)] px-1.5 py-0.2 text-[10px] font-bold text-white uppercase">
-                          O clique cai aqui
-                        </span>
-                      ) : null}
+                      <span className="text-xs text-[var(--color-text-secondary)]">{roleLabel}</span>
+                      {isChosen ? <HopNow /> : null}
                     </div>
-                    <div className="text-sm font-medium text-[var(--color-text-primary)] truncate">
+                    <div className="truncate text-sm font-medium text-[var(--color-text-primary)]">
                       {offer.shop}
                     </div>
                   </div>
@@ -114,25 +106,24 @@ export function Bench() {
           })}
         </VStack>
 
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-background-body)] p-3.5">
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-background-body)] p-4">
           <Text size="sm" color="secondary">
-            Destino da visita agora
+            Destino da visita
           </Text>
-          <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-base font-semibold text-[var(--color-text-primary)]">
-              {copy.title}
-            </span>
+          <div className="mt-1 flex items-center gap-2">
+            <span className="text-base font-medium text-[var(--color-text-primary)]">{copy.title}</span>
+            {resolution.status === "ok" ? <HopNow /> : null}
           </div>
-          <Text size="sm" color="secondary" className="mt-0.5">
+          <Text size="sm" color="secondary" className="mt-1">
             {copy.body}
           </Text>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 pt-1">
+        <div className="grid grid-cols-2 gap-2">
           <Button
             width="100%"
             icon={copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
-            label={copied ? "Copiado!" : "Copiar link"}
+            label={copied ? "Copiado" : "Copiar link"}
             onClick={copyLink}
           />
           <Button
