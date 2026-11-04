@@ -1,11 +1,6 @@
 import { Check, Copy, ExternalLink } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Button } from "@astryxdesign/core/Button";
-import { Card } from "@astryxdesign/core/Card";
-import { Heading } from "@astryxdesign/core/Heading";
-import { Switch } from "@astryxdesign/core/Switch";
-import { Text } from "@astryxdesign/core/Text";
-import { VStack } from "@astryxdesign/core/VStack";
+import { Button, Card, Heading, Switch, Text, VStack } from "@/components/linka/ui";
 import { HopNow } from "@/components/linka/hop-now";
 import { DEMO_CODE, findLink } from "@/lib/linka/catalog";
 import { formatBrl, resolutionCopy, resolveSmartLink, stockQuery } from "@/lib/linka/resolve";

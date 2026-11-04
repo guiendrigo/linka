@@ -1,24 +1,15 @@
+import { Link } from "@tanstack/react-router";
 import { CreditCard, Link2 } from "lucide-react";
-import { useState, useSyncExternalStore, type ReactNode } from "react";
-import { AppShell } from "@astryxdesign/core/AppShell";
-import { Avatar } from "@astryxdesign/core/Avatar";
-import { Button } from "@astryxdesign/core/Button";
-import { Heading } from "@astryxdesign/core/Heading";
-import { SideNav, SideNavItem } from "@astryxdesign/core/SideNav";
-import { Text } from "@astryxdesign/core/Text";
-import { TopNav } from "@astryxdesign/core/TopNav";
-import { VStack } from "@astryxdesign/core/VStack";
+import { useState, type ReactNode } from "react";
+import { Avatar, Button, Heading, Text, VStack } from "@/components/linka/ui";
 import { authEnabled, signOut } from "@/lib/auth/client";
-import { hasGateSessionMarker } from "@/lib/auth/gate-session-marker";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { PurchasesProvider, usePurchases } from "@/components/linka/use-purchases";
 import { LinkaBrand } from "@/components/linka/shell";
 import { billingEnabled } from "@/lib/linka/purchases";
+import { cn } from "@/lib/cn";
 
 type ConsolePage = "links" | "plano";
-
-const subscribeToNothing = () => () => {};
-const noGateSessionOnServer = () => false;
 
 export function ConsoleShell({
   current,
@@ -35,45 +26,80 @@ export function ConsoleShell({
 }) {
   return (
     <PurchasesProvider>
-      <AppShell
-        height="auto"
-        contentPadding={4}
-        variant="section"
-        topNav={
-          <TopNav
-            label="Linka"
-            heading={<LinkaBrand />}
-          />
-        }
-        sideNav={
-          <SideNav aria-label="Conta" header={<AccountBlock />} footer={<SignOutControl />}>
-            <SideNavItem
-              label="Links"
-              href="/"
-              icon={<Link2 size={16} aria-hidden="true" />}
-              isSelected={current === "links"}
-            />
-            {billingEnabled ? (
-              <SideNavItem
-                label="Plano"
-                href="/plano"
-                icon={<CreditCard size={16} aria-hidden="true" />}
-                isSelected={current === "plano"}
+      <div className="min-h-dvh bg-[var(--color-background-body)]">
+        <header className="border-b border-[var(--color-border)] bg-[var(--color-background-body)] lg:hidden">
+          <div className="flex h-14 items-center px-4">
+            <LinkaBrand />
+          </div>
+        </header>
+
+        <div className="mx-auto flex max-w-6xl">
+          <aside className="hidden w-56 shrink-0 border-r border-[var(--color-border)] lg:flex lg:min-h-[calc(100dvh-0px)] lg:flex-col">
+            <div className="border-b border-[var(--color-border)] px-4 py-4">
+              <LinkaBrand />
+            </div>
+            <AccountBlock />
+            <nav className="flex flex-1 flex-col gap-0.5 p-2" aria-label="Conta">
+              <SideNavLink
+                to="/"
+                label="Links"
+                icon={<Link2 size={16} aria-hidden="true" />}
+                selected={current === "links"}
               />
-            ) : null}
-          </SideNav>
-        }
-      >
-        <VStack gap={4}>
-          <VStack gap={1}>
-            <Heading level={1}>{title}</Heading>
-            <Text color="secondary">{subtitle}</Text>
-          </VStack>
-          {action ? action : null}
-          {children}
-        </VStack>
-      </AppShell>
+              {billingEnabled ? (
+                <SideNavLink
+                  to="/plano"
+                  label="Plano"
+                  icon={<CreditCard size={16} aria-hidden="true" />}
+                  selected={current === "plano"}
+                />
+              ) : null}
+            </nav>
+            <div className="border-t border-[var(--color-border)] p-2">
+              <SignOutControl />
+            </div>
+          </aside>
+
+          <div className="min-w-0 flex-1 px-4 py-6">
+            <VStack gap={4}>
+              <VStack gap={1}>
+                <Heading level={1}>{title}</Heading>
+                <Text color="secondary">{subtitle}</Text>
+              </VStack>
+              {action ? action : null}
+              {children}
+            </VStack>
+          </div>
+        </div>
+      </div>
     </PurchasesProvider>
+  );
+}
+
+function SideNavLink({
+  to,
+  label,
+  icon,
+  selected,
+}: {
+  to: string;
+  label: string;
+  icon: ReactNode;
+  selected: boolean;
+}) {
+  return (
+    <Link
+      to={to}
+      className={cn(
+        "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+        selected
+          ? "bg-[var(--color-surface)] text-[var(--color-text-primary)] shadow-sm"
+          : "text-[var(--color-text-secondary)] hover:bg-black/5 hover:text-[var(--color-text-primary)]",
+      )}
+    >
+      {icon}
+      {label}
+    </Link>
   );
 }
 
@@ -106,7 +132,7 @@ function AccountBlock() {
   const email = user?.primaryEmail;
 
   return (
-    <div className="flex items-center gap-3 px-2 py-3">
+    <div className="flex items-center gap-3 border-b border-[var(--color-border)] px-3 py-3">
       <Avatar src={user?.profileImageUrl ?? undefined} name={name} size="md" />
       <VStack gap={0} className="min-w-0">
         <Text weight="medium" maxLines={1}>
@@ -126,12 +152,7 @@ function AccountBlock() {
 
 function SignOutControl() {
   const [signingOut, setSigningOut] = useState(false);
-  const gateSession = useSyncExternalStore(
-    subscribeToNothing,
-    hasGateSessionMarker,
-    noGateSessionOnServer,
-  );
-  if (!authEnabled || gateSession) return null;
+  if (!authEnabled) return null;
 
   return (
     <Button
@@ -148,5 +169,5 @@ function SignOutControl() {
 }
 
 export function ConsolePending() {
-  return <div className="min-h-dvh bg-body" aria-busy="true" />;
+  return <div className="min-h-dvh bg-[var(--color-background-body)]" aria-busy="true" />;
 }

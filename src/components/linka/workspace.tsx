@@ -11,16 +11,18 @@ import {
   Trash2,
 } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
-import { Banner } from "@astryxdesign/core/Banner";
-import { Button } from "@astryxdesign/core/Button";
-import { Card } from "@astryxdesign/core/Card";
-import { Heading } from "@astryxdesign/core/Heading";
-import { IconButton } from "@astryxdesign/core/IconButton";
-import { Switch } from "@astryxdesign/core/Switch";
-import { Text } from "@astryxdesign/core/Text";
-import { TextArea } from "@astryxdesign/core/TextArea";
-import { TextInput } from "@astryxdesign/core/TextInput";
-import { VStack } from "@astryxdesign/core/VStack";
+import {
+  Banner,
+  Button,
+  Card,
+  Heading,
+  IconButton,
+  Switch,
+  Text,
+  TextArea,
+  TextInput,
+  VStack,
+} from "@/components/linka/ui";
 import { Bench } from "@/components/linka/bench";
 import { HopNow } from "@/components/linka/hop-now";
 import { SidePanel } from "@/components/linka/side-panel";

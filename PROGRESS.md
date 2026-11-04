@@ -2,7 +2,7 @@
 
 App para afiliados da Shopee. A pessoa entra, guarda um produto com oferta principal e backups, e copia um único endereço. Quem clica cai na oferta que ainda tem estoque.
 
-Produção é a Magalu (Docker, SQLite). O preview Grok usa banco embutido. A regra do link é a mesma. Sem a chave Affiliate da plataforma, o beta fecha no estoque marcado na mão.
+Produção e dev usam SQLite (`SQLITE_PATH`). Stack Magalu-first (sem Neon/PGLite/Vercel/Astryx). A regra do link é a mesma. Sem a chave Affiliate da plataforma, o beta fecha no estoque marcado na mão.
 
 ## O que já funciona
 
@@ -10,7 +10,7 @@ Produção é a Magalu (Docker, SQLite). O preview Grok usa banco embutido. A re
 
 - Home pública em português, mobile primeiro, com o simulador do sérum (`/r/serum-c`).
 - Quem entra vê a conta em casca de console: Links na barra, gaveta no celular. Plano só aparece com `VITE_BILLING_ENABLED=true`. A home pública, o link `/r/...` e a bio `/p/...` ficam sem essa barra.
-- Conta por Google, X ou e-mail e senha. Não há magic link.
+- Conta por Google (nativo) ou e-mail e senha. Não há magic link.
 - Cada pessoa só vê os próprios produtos. O link público não pede conta.
 - Quem entra ganha uma página de bio em `/p/codigo` (código opaco, não muda). Enquanto não há achadinho, a bio não compete com o primeiro `/r`. Depois do cadastro, título, descrição e foto ficam no topo de Links; cada produto pode ficar visível ou oculto. O visitante vê título, preço e **Ver oferta**, sem comissão. Produto esgotado some da bio.
 - Conta vazia: uma ação (montar o link), o simulador do sérum continua na tela, e dá para abrir o rascunho do exemplo. Progresso começa em 20% até copiar o `/r`.
@@ -46,7 +46,7 @@ Produção é a Magalu (Docker, SQLite). O preview Grok usa banco embutido. A re
 
 ### Operação Magalu
 
-- `GET /api/health` só responde ok se o SQLite (ou o banco da vez) responde `select 1`.
+- `GET /api/health` só responde ok se o SQLite responde `select 1`.
 - Backup: script no container (`scripts/backup-sqlite.mjs`) e cron no host copiando para fora do volume e da VM.
 
 ### Plano

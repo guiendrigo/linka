@@ -9,14 +9,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useState } from "react";
-import { Badge } from "@astryxdesign/core/Badge";
-import { Banner } from "@astryxdesign/core/Banner";
-import { Button } from "@astryxdesign/core/Button";
-import { Card } from "@astryxdesign/core/Card";
-import { Heading } from "@astryxdesign/core/Heading";
-import { HStack } from "@astryxdesign/core/HStack";
-import { Text } from "@astryxdesign/core/Text";
-import { VStack } from "@astryxdesign/core/VStack";
+import { Badge, Banner, Button, Card, Heading, HStack, Text, VStack } from "@/components/linka/ui";
 import { usePurchases } from "@/components/linka/use-purchases";
 import type { PlanKind, PlanPackageView } from "@/lib/linka/purchases";
 

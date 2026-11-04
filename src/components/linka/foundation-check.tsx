@@ -1,8 +1,5 @@
 import { useState } from "react";
-import { Button } from "@astryxdesign/core/Button";
-import { Card } from "@astryxdesign/core/Card";
-import { TextInput } from "@astryxdesign/core/TextInput";
-import { VStack } from "@astryxdesign/core/VStack";
+import { Button, Card, TextInput, VStack } from "@/components/linka/ui";
 
 /** Temporary layer-order smoke. Open `/?foundation=1`. */
 export function FoundationCheck() {

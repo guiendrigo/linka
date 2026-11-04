@@ -1,17 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
-import { Banner } from "@astryxdesign/core/Banner";
-import { Button } from "@astryxdesign/core/Button";
-import { Text } from "@astryxdesign/core/Text";
-import { TextInput } from "@astryxdesign/core/TextInput";
-import { VStack } from "@astryxdesign/core/VStack";
-import {
-  authClient,
-  authEnabled,
-  googleLoginEnabled,
-  signIn,
-  socialProviders,
-} from "@/lib/auth/client";
+import { Banner, Button, Text, TextInput, VStack } from "@/components/linka/ui";
+import { authClient, authEnabled, googleLoginEnabled } from "@/lib/auth/client";
 
 type Mode = "in" | "up";
 
@@ -90,8 +80,6 @@ export function LoginPanel() {
     return <Text color="secondary">Entrar está desligado.</Text>;
   }
 
-  const showSocialDivider = socialProviders.length > 0 || googleLoginEnabled;
-
   return (
     <VStack gap={3}>
       {googleLoginEnabled ? (
@@ -104,17 +92,7 @@ export function LoginPanel() {
         />
       ) : null}
 
-      {socialProviders.map((provider) => (
-        <Button
-          key={provider.providerId}
-          variant={provider.idp === "google" ? "primary" : "secondary"}
-          width="100%"
-          label={`Continuar com ${provider.label}`}
-          onClick={() => signIn(provider.providerId, { callbackURL: "/" })}
-        />
-      ))}
-
-      {showSocialDivider ? (
+      {googleLoginEnabled ? (
         <Text color="secondary" justify="center">
           ou com e-mail
         </Text>

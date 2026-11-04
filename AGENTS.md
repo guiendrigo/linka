@@ -6,44 +6,41 @@ the public link `/r/<code>` redirects to the first in-stock HTTPS offer.
 `/api/r/<code>` returns the same decision as JSON. Visitors never need an
 account.
 
+**Production is Magalu** (Docker, SQLite at `SQLITE_PATH`, host
+`linka.guiendrigo.com`). Dev on Mac uses the same SQLite tree with a local file
+(e.g. `SQLITE_PATH=./.local/linka.sqlite`). There is no Neon, PGLite, or Vercel
+target — see `docs/adr/0002-magalu-sqlite-unico.md`.
+
 `PROGRESS.md` tracks product status and backlog in Portuguese. Its
-"O que ainda não existe" section is a scope boundary: natural-language search,
-free-account limits, a dashboard, an installable PWA, and click counts are not
-implemented. RevenueCat billing (Anual/Mensal, entitlement `linka_pro`) lives
-on `/plano` behind `VITE_BILLING_ENABLED=true` (off by default). Verify against
-code before claiming a feature exists.
+"O que ainda não existe" section is a scope boundary. RevenueCat billing
+(Anual/Mensal, entitlement `linka_pro`) lives on `/plano` behind
+`VITE_BILLING_ENABLED=true` (off by default). Verify against code before
+claiming a feature exists.
 
 ## Commands
 
 - `npm install` — required in a fresh checkout; `node_modules/` is not committed.
-- `npm run dev` — dev server on `0.0.0.0:8080`. **Always use this, never `vite` /
-  `npx vite` directly**: `scripts/with-app-env.mjs` loads `.grok/app-env.json`,
-  and bypassing it makes dev and the next build disagree about auth.
+- `npm run dev` — dev server on `0.0.0.0:8080` via `scripts/with-app-env.mjs`.
+  Requires `SQLITE_PATH` in `.env` (never `/data/...` on the Mac host).
 - `npm run typecheck` — `tsc --noEmit`.
 - `npm run lint` / `npm run format`.
-- `npm run build` — Vite build, then `db:migrate`. Without `DATABASE_URL` the
-  migration step is skipped; with it, pending `migrations/*.sql` are applied.
-- `npm test` — Grok template suite. Read "Test state" before using it as a
-  verdict; it is not green on purpose.
-- `npm run test:linka` — Linka's unit tests (`src/lib/linka/*.test.ts`).
-- Single test: `node --test scripts/<name>.test.mjs`, or
-  `node --experimental-strip-types --test src/lib/linka/<name>.test.ts`.
-- `npm run check:auth` — with the dev server up; exit 0 = dev and the next build
-  agree on `VITE_AUTH_ENABLED`, 1 = diverged, 2 = could not observe.
-- `npm run preview:restart` — serve built output on `127.0.0.1:8081`
-  (Linux sandbox only; see "Platform contract").
+- `npm run build` — Vite + Nitro `node_server`, then `db:migrate` when
+  `SQLITE_PATH` is set.
+- `npm run test:linka` — Linka unit tests (`src/lib/linka/*.test.ts`).
+- Magalu image: `docker compose -p linka build` (or `up -d --build`). Do not
+  treat `npm run build` alone as the Magalu gate.
 
 ## Routes and entrypoints
 
 | Route | Notes |
 | --- | --- |
 | `/` | Public pitch + simulator (`Bench`) and the signed-in workspace. |
-| `/login` | Google, X, and local email/password. |
+| `/login` | Native Google (when secrets set) and local email/password. |
 | `/r/$code` | Public. 302 to the first in-stock HTTPS offer; sold-out page otherwise. |
 | `/p/$code` | Public bio page (list + Ver oferta). `/p/$code/photo` serves the avatar. |
 | `/api/r/$code` | Public JSON version of the same resolution, without secrets. |
 | `/api/auth/$` | Better Auth handler. |
-| `/api/health` | Health check. |
+| `/api/health` | Health check (SQLite `select 1`). |
 
 ## Architecture
 
@@ -51,65 +48,39 @@ code before claiming a feature exists.
   generated — edit routes, not the generated tree.
 - Server-only modules use `*.server.ts`; client-callable handlers use
   `*.functions.ts`. Handlers are `createServerFn(...).validator(...)` and
-  dynamically import server modules inside the handler. Keep that split so `pg`,
-  Better Auth internals, and the Shopee secret never enter the client bundle.
+  dynamically import server modules inside the handler so Better Auth internals
+  and the Shopee secret never enter the client bundle.
 - `src/router.tsx` must keep the named `getRouter()` export,
-  `previewPathRewrite()`, and `defaultErrorComponent`; the TanStack Start plugin
-  rejects a default or differently-shaped router.
-- Keep `<PreviewHostBridge />` and `<AuthProvider>` mounted in `__root.tsx`.
-- `src/lib/app-data/` is pre-wired connector tooling; Linka has no connector
-  data flow. Ignore it unless the task adds one.
-- `.vercel/output/` is a committed build artifact; don't edit it by hand.
+  `previewPathRewrite()`, and `defaultErrorComponent`.
+- Keep `<AuthProvider>` mounted in `__root.tsx`.
+- UI is HTML + Tailwind v4 + tokens in `src/styles.css` (no Astryx / shadcn).
 
 ## Auth and data
 
-- Auth is **ON** in this app. `.grok/app-env.json` has no `VITE_AUTH_ENABLED`
-  key, and absence means on (`import.meta.env.VITE_AUTH_ENABLED !== "false"`).
-  `emailAndPasswordEnabled` is true; Google/X come from `GROK_PROVIDERS`.
-- `src/lib/auth/server.ts` is pre-wired platform code; don't rewrite it. Toggle
-  local email/password only in `email-password.ts`; add providers in
-  `providers.ts`.
+- Auth is **ON**. Email/password is enabled; native Google when
+  `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` are set. Do not set `GROK_AUTH_*`
+  on Magalu.
 - Every per-user server function uses `authMiddleware` and scopes every query by
   the verified `context.userId`. Never accept a user id from the client.
-- `/r/$code` and `/api/r/$code` are intentionally public. Don't add auth there.
-- In the live preview, Better Auth authenticates with a bearer token from
-  `sessionStorage`; `authMiddleware` forwards it. Sign out with `signOut()` from
-  `@/lib/auth/client`, never `authClient.signOut()` directly.
-- Never create `src/routes/auth/popup.tsx`; the Vite plugin serves
-  `/auth/popup` for the preview popup flow.
-- `@/lib/db` is server-only. `DATABASE_URL` selects Neon; absent/empty selects
-  embedded PGLite.
-- PGLite is in-memory and resets when the dev server restarts, so preview
-  accounts, products, and stock cache disappear. That is expected, not a
-  database bug.
-- Schema lives only in `migrations/*.sql`. Add app tables as
-  `migrations/000N_*.sql`; PGLite applies them at startup and `npm run build`
-  applies them to Neon. `migrations/auth/0001_auth.sql` is the source and
-  `migrations/0001_auth.sql` must stay a byte-identical copy of it.
+- `/r/$code` and `/api/r/$code` are intentionally public.
+- Sign out with `signOut()` from `@/lib/auth/client`.
+- `@/lib/db` is server-only and **requires** `SQLITE_PATH`. Schema lives only in
+  `migrations/sqlite/*.sql`. Auth tables are `migrations/sqlite/0001_auth.sql`.
 - The Shopee Affiliate App ID/secret live in server env
   (`SHOPEE_AFFILIATE_APP_ID`, `SHOPEE_AFFILIATE_SECRET`), never per user and
-  never in `VITE_*`. `WorkspaceView` exposes `stock.automatic`, not credentials.
-  Don't log the secret. Don't add a form for the affiliate to paste a key.
+  never in `VITE_*`. Don't log the secret.
 
 ## Link and stock rules
 
 - `resolveSmartLink` is the single decision function: the first `inStock` offer
   wins; none -> `all_out`; no offers -> `empty`.
 - `redirectTarget` only allows `https://` URLs with no whitespace or embedded
-  credentials. Keep that gate.
-- `/r/$code` redirects with 302 and `cache-control: no-store`; keep it no-store
-  so every visit re-evaluates stock.
-- `?on=a,b` is a deliberate demo override (`withStock`) used by the home
-  simulator. It is not persisted; don't confuse it with real stock.
-- `src/lib/linka/catalog.ts` (`serum-c`) is hardcoded demo data and a fallback
-  when a code is not in the database. User products live in `products` /
-  `offers`.
+  credentials.
+- `/r/$code` redirects with 302 and `cache-control: no-store`.
+- `?on=a,b` is a deliberate demo override for the home simulator only.
 - Stock checks only run for Shopee URLs containing shop/item ids; short links
-  without ids are skipped. Results are fresh for 15 minutes
-  (`STOCK_FRESH_MS`) and shared by shop/item in `stock_checks`. At most 8 live
-  lookups run per check (`LOOKUP_CAP`). Auth, rate-limit, and network failures
-  preserve the existing manual stock. A manual toggle clears `checked_at`,
-  making the next check due. Never use Affiliate `offerLink` / short links.
+  without ids are skipped. Results are fresh for 15 minutes (`STOCK_FRESH_MS`).
+  Never use Affiliate `offerLink` / short links.
 
 ## UI
 
@@ -118,96 +89,25 @@ code before claiming a feature exists.
 - Dark-theme tokens live in `src/styles.css` (`bg-bg`, `text-fg`, `text-muted`,
   `bg-surface`, `shadow-ring`, `text-primary`). Use tokens instead of raw hex
   values, and check mobile at 390×844.
-- The platform's sign-out labels remain English; that exception is noted in
-  `PROGRESS.md`.
 
-## Platform contract (Grok App Builder)
+## Magalu deploy
 
-- The preview expects the app on `0.0.0.0:8080`. In the Linux sandbox,
-  `/workspace/startup.sh` is the revive entrypoint: keep it idempotent, bound to
-  `npm run dev`, and leave the server running.
-- When this repo is checked out outside `/workspace` (for example a local macOS
-  clone), the sandbox scripts fail: `startup.sh` does `cd /workspace`,
-  `scripts/preview.mjs` reads `/proc`, and `scripts/browser-smoke.mjs` only
-  allows screenshots under `/workspace`. Run `npm run dev` and Playwright
-  directly there instead of "fixing" the platform scripts.
-- Keep platform chrome: `grokPwaPlugin()`, `server/middleware/grok-pwa.ts`,
-  `public/__grok/`, `scripts/grok-pwa-*`, and `<PreviewHostBridge />`. Don't
-  strip the "Created with Grok" pill, add its script yourself, or add a CSP that
-  blocks `https://grok.com`. Branding changes are project settings, not code.
-- Keep the `vite.config.ts` contracts: dev `0.0.0.0:8080`, preview
-  `127.0.0.1:8081`, `nitro({ preset: "vercel", serverDir: "./server" })`, and
-  `grokPwaPlugin()`.
-- Deployment is Vercel with `npm install --omit=dev` (`vercel.json`). Anything
-  imported at build/runtime must be in `dependencies`; never add an imported
-  package with `-D`. Never commit a `.env`; the platform injects
-  `DATABASE_URL` and auth vars.
-- Don't add `og:*` / `twitter:card` tags manually to `__root.tsx`; the platform
-  injector owns them. App identity is `src/lib/og/site.json` + `public/og.jpg`.
-- Auth/database are already enabled for this app. Don't add new migrations,
-  auth providers, or storage mechanisms unless the task actually requires them.
+- Production: `/opt/linka`, Compose project `linka`, Caddy
+  `linka.guiendrigo.com`. See `.agents/skills/linka-prod-deploy/SKILL.md`.
+- Image builds with `NITRO_PRESET=node_server`. Entrypoint runs
+  `migrations/sqlite/` then the Node server on port 3000.
+- Backup the SQLite volume before schema-changing deploys.
+- Never run `npm run dev` on the Magalu host with `SQLITE_PATH=/data/...`
+  (container volume → `EACCES` on the host).
 
 ## Verification
 
 - Before calling work done: `npm run test:linka`, `npm run typecheck`,
-  `npm run lint`. Magalu-bound work also needs `docker compose -p linka build`
-  (or `up -d --build`); `npm run build` is the Vercel preset, not the VM image.
-- Before calling work done on Grok preview only: also `npm run build`.
-- Dev smoke: `node scripts/browser-smoke.mjs http://127.0.0.1:8080/ screenshots/<name>.png`
-  (sandbox only).
-- Built-output smoke: `npm run preview:restart`, then
-  `node scripts/browser-smoke.mjs http://127.0.0.1:8081/ screenshots/<name>.png --baseline screenshots/<dev-verdict>.json`.
-- Inspect both desktop and mobile screenshots; require visible content and no
-  console/page errors. On macOS use Playwright directly.
+  `npm run lint`, and `docker compose -p linka build` for Magalu-bound work.
+- Smoke: `GET /api/health`, login, `/r/<code>`, `/p/<code>`.
 
-## Test state
+## Reference
 
-- `npm test` is not green currently. Thirteen template-ownership assertions fail
-  in the script phase, so the TS phase never runs. They expect the untouched
-  starter (`VITE_AUTH_ENABLED=false`, no app migrations, no baked OG identity);
-  Linka intentionally differs. Don't revert auth, migrations, or `site.json` to
-  make them pass; update the expectations only when test hygiene is the task.
-- Linka's own unit tests are `npm run test:linka` (not part of `npm test`) and
-  do pass.
-- `src/lib/app-data/app-data.test.ts` and
-  `src/lib/auth/gate-identity.test.ts` need dependencies installed; they fail
-  with module-not-found in a bare checkout.
-
-## Reference docs
-
-- `.agents/references/data-and-auth.md` — auth/database wiring.
-- `.agents/references/deploy-target.md` — Vercel build constraints.
-- `.agents/references/browser-qa.md` — browser verification.
-- `.agents/references/hibernate-revive.md` — sandbox restart contract.
-- `.agents/skills/*/SKILL.md` — platform design/auth/database guidance.
-
-<!-- ASTRYX:START -->
-Astryx v0.7.3 · 173 components
-CLI: run every command as `npx astryx <cmd>` (shown below as `astryx ...`).
-
-SETUP (once, in app entry e.g. main.tsx) — without these, components render unstyled:
-  import "@astryxdesign/core/reset.css";
-  import "@astryxdesign/core/astryx.css";
-
-WORKFLOW — start every page from a template, never from scratch:
-1. `astryx build "<idea>"` — names the template to scaffold from and the parts it lacks.
-2. `astryx template <name> <path>` — scaffold it; keep its frame, gap and padding; replace the content.
-3. `astryx template <Block>` for parts it lacks; `astryx component <Name>` to read props before using one.
-Changing an existing page? Keep it: skip step 2 and add blocks/components inside its sections.
-
-RULES:
-- No <div> — components handle all layout and spacing.
-- Read `astryx docs layout` before changing a template's frame.
-- Dense data = rows (Table, List/Item), not Card-wrapped lists. Badge = counts only.
-- Style with component props first, then Tailwind utilities backed by tokens. No raw hex/px.
-- Palettes and custom colors go through the theme, never :root overrides. Run `astryx theme add <slug>` to import; `theme eject <slug>` only forks source. See `astryx docs theme`.
-- SELF-CHECK: re-read the file; replace any style={{…}}, raw <div>/<span>, imported .css/@apply, or hardcoded/arbitrary value (bg-[#fff], p-[13px]) with the component or a token-backed utility.
-
-`astryx help` lists every command. Key ones beyond the workflow:
-  search "<query>"   find any component / hook / doc / template
-  discover <words>   integrations you could add
-  docs <topic>       getting-started, principles, tokens, theme … (`astryx docs` lists all)
-  docs cli           commands and API reference
-  docs authoring     build an integration package, and every field it holds
-  upgrade --from <old version> --apply   run after a dependency bump
-<!-- ASTRYX:END -->
+- `CONTEXT.md` — domain glossary.
+- `docs/adr/` — architecture decisions.
+- `.agents/skills/linka-*/SKILL.md` — Magalu schema, Start contracts, verify, deploy.

@@ -207,7 +207,7 @@ O sistema de formas privilegia cantos amigáveis e curvilíneos, refletindo a es
 
 ## Components
 
-Os componentes foram desenhados com props e tokens do `@astryxdesign/core`, complementados por estilos utilitários consistentes.
+Os componentes usam HTML + Tailwind com tokens em `src/styles.css` (`src/components/linka/ui.tsx`).
 
 ### 1. Marca & Identidade (LinkaBrand)
 - **Composição:** Ícone de sacola de compras (`ShoppingBag`) em tamanho 15px com traço 2.5, contido em um quadrado de 28×28px (`size-7`) com cantos arredondados de 8px e fundo laranja (`#ff5c39`), seguido pelo logotipo "Linka" em peso bold e um subtítulo "AFILIADOS" em caixa alta com cor de texto acentuada.

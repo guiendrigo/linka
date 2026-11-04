@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Drawer, DrawerHeader } from "@astryxdesign/core/Drawer";
+import { DrawerPanel } from "@/components/linka/ui";
 
 export function SidePanel({
   open,
@@ -12,14 +12,9 @@ export function SidePanel({
   onClose: () => void;
   children: ReactNode;
 }) {
-  function handleOpenChange(next: boolean) {
-    if (!next) onClose();
-  }
-
   return (
-    <Drawer isOpen={open} onOpenChange={handleOpenChange} label={title} side="end" purpose="form">
-      <DrawerHeader title={title} onOpenChange={handleOpenChange} />
+    <DrawerPanel open={open} title={title} onClose={onClose}>
       {children}
-    </Drawer>
+    </DrawerPanel>
   );
 }

@@ -1,11 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { ExternalLink } from "lucide-react";
 import type { ReactNode } from "react";
-import { Avatar } from "@astryxdesign/core/Avatar";
-import { Button } from "@astryxdesign/core/Button";
-import { Heading } from "@astryxdesign/core/Heading";
-import { Text } from "@astryxdesign/core/Text";
-import { VStack } from "@astryxdesign/core/VStack";
+import { Avatar, Button, Heading, Text, VStack } from "@/components/linka/ui";
 import { HopNow } from "@/components/linka/hop-now";
 import type { BioListItem } from "@/lib/linka/bio";
 import { loadPublicBioPage } from "@/lib/linka/bio.functions";

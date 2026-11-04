@@ -10,10 +10,6 @@ user-invocable: false
 
 # Linka verify
 
-**Do not use `npm test` as a verdict.** It is the Grok template suite. It fails
-on purpose (auth on, app migrations, OG identity). Do not revert those to make
-it green.
-
 ## Always
 
 ```sh
@@ -22,22 +18,14 @@ npm run typecheck
 npm run lint
 ```
 
-`test:linka` is `src/lib/linka/*.test.ts` (input, resolve, shopee, bio,
-purchases, …).
+`test:linka` is `src/lib/linka/*.test.ts`.
 
-## If the change ships on Magalu
-
-`npm run build` is the Vercel preset. Also:
+## Magalu-bound changes
 
 ```sh
 docker compose -p linka build
 ```
 
 or `up -d --build`. JSX-in-`.ts` and `*.client.ts` on the route graph only
-fail here.
-
-## If the sandbox preview is the target
-
-`npm run build`, then the browser-smoke commands in `AGENTS.md` (only under
-`/workspace`). On this VM (`/opt/linka`) skip Playwright-on-8080; use the
-prod smoke in `linka-prod-deploy`.
+fail here. Smoke `/api/health`, login, `/r`, `/p` locally before
+`linka-prod-deploy` on the VM.

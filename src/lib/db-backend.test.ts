@@ -2,25 +2,16 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { pgPlaceholdersToSqlite, resolveDbSource } from "./db-backend.ts";
 
-test("SQLITE_PATH wins over DATABASE_URL", () => {
+test("SQLITE_PATH selects sqlite", () => {
   assert.equal(
-    resolveDbSource({
-      SQLITE_PATH: " /data/linka.sqlite ",
-      DATABASE_URL: "postgres://example",
-    }),
+    resolveDbSource({ SQLITE_PATH: " /data/linka.sqlite " }),
     "sqlite",
   );
 });
 
-test("DATABASE_URL selects neon when SQLITE_PATH is empty", () => {
-  assert.equal(
-    resolveDbSource({ SQLITE_PATH: "  ", DATABASE_URL: "postgres://example" }),
-    "neon",
-  );
-});
-
-test("unset paths select pglite", () => {
-  assert.equal(resolveDbSource({}), "pglite");
+test("missing SQLITE_PATH throws", () => {
+  assert.throws(() => resolveDbSource({}), /SQLITE_PATH is required/);
+  assert.throws(() => resolveDbSource({ SQLITE_PATH: "  " }), /SQLITE_PATH is required/);
 });
 
 test("pg placeholders become sqlite question marks", () => {

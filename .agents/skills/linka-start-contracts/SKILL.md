@@ -18,14 +18,13 @@ These fail in **Docker SSR** even when `tsc` is green.
 
 - JSX only in `.tsx`. A `.ts` file with `<Provider>` will fail `vite build` in
   the Magalu image.
-- Server-only I/O (`pg`, Better Auth internals, Shopee secret, SQLite):
+- Server-only I/O (Better Auth internals, Shopee secret, SQLite):
   `*.server.ts`, dynamically imported **inside** a `createServerFn` handler or
   a `server.handlers` GET. Types may be `import type`.
 - Never import `*.client.ts` from a module that `src/routes/*` pulls in
   (console, plan, workspace, providers). TanStack Start denies
   `**/*.client.*` in the server environment. Put browser SDKs in a file
   **not** named `.client.ts`, or load them only behind `createClientOnlyFn`.
-- Do not create `src/routes/auth/popup.tsx`.
 
 ## Public vs account
 

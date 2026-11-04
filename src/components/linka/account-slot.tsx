@@ -1,4 +1,4 @@
-import { Button } from "@astryxdesign/core/Button";
+import { Button } from "@/components/linka/ui";
 import { UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 

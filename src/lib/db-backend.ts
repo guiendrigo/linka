@@ -1,5 +1,5 @@
-/** Which database backend is active. */
-export type DbSource = "sqlite" | "neon" | "pglite";
+/** Linka is SQLite-only (Magalu + local). */
+export type DbSource = "sqlite";
 
 function trimmed(value: string | undefined): string | undefined {
   const next = value?.trim();
@@ -7,19 +7,20 @@ function trimmed(value: string | undefined): string | undefined {
 }
 
 /**
- * SQLITE_PATH wins so Magalu never falls through to RAM. DATABASE_URL selects
- * Neon. Otherwise the in-memory PGLite preview fallback.
+ * Requires SQLITE_PATH. Neon/PGLite were removed — see ADR 0002.
  */
 export function resolveDbSource(env: {
   SQLITE_PATH?: string | undefined;
-  DATABASE_URL?: string | undefined;
 }): DbSource {
-  if (trimmed(env.SQLITE_PATH)) return "sqlite";
-  if (trimmed(env.DATABASE_URL)) return "neon";
-  return "pglite";
+  if (!trimmed(env.SQLITE_PATH)) {
+    throw new Error(
+      "SQLITE_PATH is required (e.g. ./.local/linka.sqlite locally, /data/linka.sqlite on Magalu)",
+    );
+  }
+  return "sqlite";
 }
 
-/** Convert node-postgres `$1` placeholders to better-sqlite3 `?`. */
+/** Convert `$1` placeholders to better-sqlite3 `?`. */
 export function pgPlaceholdersToSqlite(text: string): string {
   return text.replace(/\$(\d+)/g, "?");
 }

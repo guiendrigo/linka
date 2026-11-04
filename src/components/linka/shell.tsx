@@ -1,8 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Link2 } from "lucide-react";
 import type { ReactNode } from "react";
-import { AppShell as AstryxAppShell } from "@astryxdesign/core/AppShell";
-import { TopNav } from "@astryxdesign/core/TopNav";
 import { AccountSlot } from "@/components/linka/account-slot";
 
 export function LinkaBrand() {
@@ -16,19 +14,15 @@ export function LinkaBrand() {
 
 export function PublicShell({ children, account = true }: { children: ReactNode; account?: boolean }) {
   return (
-    <AstryxAppShell
-      contentPadding={4}
-      mobileNav={false}
-      topNav={
-        <TopNav
-          label="Linka"
-          heading={<LinkaBrand />}
-          endContent={account ? <AccountSlot /> : undefined}
-        />
-      }
-    >
-      {children}
-    </AstryxAppShell>
+    <div className="min-h-dvh bg-[var(--color-background-body)]">
+      <header className="sticky top-0 z-10 border-b border-[var(--color-border)] bg-[var(--color-background-body)]/95 backdrop-blur-sm">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
+          <LinkaBrand />
+          {account ? <AccountSlot /> : null}
+        </div>
+      </header>
+      <main className="mx-auto max-w-6xl px-4 py-6">{children}</main>
+    </div>
   );
 }
 

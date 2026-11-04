@@ -1,0 +1,1 @@
+import{c as e}from"./createLucideIcon-DcJ_mmXp.js";var t=e();function n({className:e=``}){return(0,t.jsxs)(`span`,{className:`inline-flex items-center gap-1.5 text-xs font-medium text-[var(--color-text-accent)] ${e}`,children:[(0,t.jsx)(`span`,{className:`size-1.5 shrink-0 rounded-full bg-[var(--color-accent)]`,"aria-hidden":`true`}),`agora`]})}export{n as t};

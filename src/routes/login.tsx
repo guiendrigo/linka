@@ -1,7 +1,5 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { Heading } from "@astryxdesign/core/Heading";
-import { Text } from "@astryxdesign/core/Text";
-import { VStack } from "@astryxdesign/core/VStack";
+import { Heading, Text, VStack } from "@/components/linka/ui";
 import { AppShell } from "@/components/linka/shell";
 import { LoginPanel } from "@/components/linka/login-panel";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";

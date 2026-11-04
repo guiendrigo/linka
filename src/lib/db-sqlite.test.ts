@@ -18,7 +18,13 @@ test("ensureDbReady creates the sqlite file and records migrations", async () =>
   const rows = await sql.query<{ name: string }>("select name from _migrations order by name");
   assert.deepEqual(
     rows.map((row) => row.name),
-    ["0001_auth.sql", "0002_linka.sql", "0003_bio_page.sql", "0004_affiliate_stock.sql"],
+    [
+      "0001_auth.sql",
+      "0002_linka.sql",
+      "0003_bio_page.sql",
+      "0004_affiliate_stock.sql",
+      "0005_visit_and_plan.sql",
+    ],
   );
   const tables = await sql.query<{ name: string }>(
     "select name from sqlite_master where type = 'table' and name in ('stock_checks', 'shopee_credentials') order by name",

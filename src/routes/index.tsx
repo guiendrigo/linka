@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Button } from "@astryxdesign/core/Button";
-import { Heading } from "@astryxdesign/core/Heading";
-import { Text } from "@astryxdesign/core/Text";
-import { VStack } from "@astryxdesign/core/VStack";
+import { Button, Heading, Text, VStack } from "@/components/linka/ui";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { Bench } from "@/components/linka/bench";
 import { ConsolePending, ConsoleShell } from "@/components/linka/console";
